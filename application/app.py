@@ -3,9 +3,27 @@ from application.textProcess import textProcess
 from werkzeug.utils import secure_filename
 import os
 import hashlib
+from flask_sqlalchemy import SQLAlchemy
+import time
 
 
 app = Flask(__name__)
+db = SQLAlchemy(app)
+
+
+class File(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(100), nullable=False)
+    type = db.Column(db.String(10), nullable=False)
+
+
+class Text(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(100), nullable=False)
+    type = db.Column(db.String(10), nullable=False)
+
+
+db.create_all()
 
 
 @app.route("/")
@@ -33,14 +51,20 @@ def upload_file():
             ".php",
             ".sh",
         ]
-        for i in receive_file_type:
-            if filename.endswith(i):
-                return jsonify({"message": "文件类型错误", "status": "error"})
+        if not any([filename.endswith(i) for i in receive_file_type]):
+            return jsonify({"message": "文件类型错误", "status": "error"})
         # 保存文件
-        hash = hashlib.md5(file.read().encode("utf-8")).hexdigest()  # 加密区分不同文件
-        filename = filename.split(".")[0] + "_" + hash + "." + filename.split(".")[1]
+        timestamp = time.time()  # 时间戳区分文件
+        filename = (
+            filename.split(".")[0] + "_" + timestamp + "." + filename.split(".")[1]
+        )
+        name, type = filename.split(".")
+        file_db = File(filename=name, type=type)
+        db.session.add(file_db)
+        db.session.commit()
+        # 保存文件名及类型到数据库
         file.save("upload/file/" + filename)
-
+        # 保存文件
         return jsonify(
             {
                 "message": "成功上传文件",
@@ -54,12 +78,18 @@ def upload_file():
 
 @app.route("/api/upload_text", methods=["POST"])
 def upload_text():
-    data = request.get_json()
-    if "text" not in data or data["text"] == "":
+    data = request.data
+    if data == "":
         return jsonify({"message": "未上传文本", "status": "error"})
     else:
-        hash = hashlib.md5(data["text"].encode("utf-8")).hexdigest()
-        filename = "text_" + hash + ".txt"
+        timestamp = time.time()
+        filename = "text_" + timestamp + ".txt"
+
+        name, type = filename.split(".")
+        text_db = Text(filename=name, type=type)
+        db.session.add(text_db)
+        db.session.commit()
+        # 保存文件名及类型到数据库
         with open("upload/text/" + filename, "w") as f:
             f.write(data["text"])
         return jsonify(
