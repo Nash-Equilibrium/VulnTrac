@@ -1,7 +1,6 @@
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.llms.fake import FakeListLLM
 from langchain.docstore.document import Document
-import request
 
 
 def textProcess(file_path: str) -> list:  # 处理文本

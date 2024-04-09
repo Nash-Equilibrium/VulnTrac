@@ -1,16 +1,20 @@
 from flask import Flask, request, jsonify
-from application.textProcess import textProcess
-from application.mutiplyTextProcess import mutiplyTextProcess
+from textprocess.textProcess import textProcess
+from textprocess.mutiplyTextProcess import mutiplyTextProcess
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
 from loguru import logger
 import time
+import os
 
 # 日志配置
 logger.add("app.log", rotation="50MB", retention="10 days", level="INFO", colorize=True)
 
 # Flask和数据库配置
+load_dotenv()
 app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
 db = SQLAlchemy(app)
 
 
@@ -26,7 +30,8 @@ class Text(db.Model):
     type = db.Column(db.String(10), nullable=False)
 
 
-db.create_all()
+with app.app_context():
+    db.create_all()
 
 
 @app.route("/")
@@ -65,8 +70,9 @@ def upload_file():
         )
         name, type = filename.split(".")
         file_db = File(filename=name, type=type)
-        db.session.add(file_db)
-        db.session.commit()
+        with app.app_context():
+            db.session.add(file_db)
+            db.session.commit()
         # 保存文件名及类型到数据库
         file.save("upload/file/" + filename)
         logger.info(f"{time.time}：文件{filename}上传成功")
@@ -94,8 +100,9 @@ def upload_text():
 
         name, type = filename.split(".")
         text_db = Text(filename=name, type=type)
-        db.session.add(text_db)
-        db.session.commit()
+        with app.app_context():
+            db.session.add(text_db)
+            db.session.commit()
         # 保存文件名及类型到数据库
         with open("upload/text/" + filename, "w") as f:
             f.write(data["text"])
