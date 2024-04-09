@@ -1,15 +1,11 @@
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.llms.fake import FakeListLLM
+from langchain.docstore.document import Document
+import request
 
 
 def textProcess(file_path: str) -> list:  # 处理文本
-    """
-    处理单一文本
-    """
-    if file_path is None:
-        print("文件路径为空")
-        return
-    with open(file_path, "r") as f:
+    with open("application/1.txt", "r") as f:
         text = f.read()
 
     if text is None:
@@ -27,14 +23,6 @@ def textProcess(file_path: str) -> list:  # 处理文本
     split_documents = text_splitter.create_documents(text)
 
     # # 传递大模型
-    # results = modelProcess(split_documents: list)
-
-    #    大模型处理
-    results = []
-    responses = ["Test"]
-    llm = FakeListLLM(responses=responses)
-    for document in split_documents:
-        results.append(llm(document.page_content))
 
 
 if __name__ == "__main__":

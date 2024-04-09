@@ -1,12 +1,15 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from application.textProcess import textProcess
+from application.mutiplyTextProcess import mutiplyTextProcess
 from werkzeug.utils import secure_filename
-import os
-import hashlib
 from flask_sqlalchemy import SQLAlchemy
+from loguru import logger
 import time
 
+# 日志配置
+logger.add("app.log", rotation="50MB", retention="10 days", level="INFO", colorize=True)
 
+# Flask和数据库配置
 app = Flask(__name__)
 db = SQLAlchemy(app)
 
@@ -42,14 +45,16 @@ def upload_file():
         filename = secure_filename(file.filename)
         receive_file_type = [
             ".txt",
-            ".pdf",
             "c",
             ".cpp",
             ".java",
             ".py",
+            ".go",
             ".js",
             ".php",
-            ".sh",
+            ".zip",
+            ".rar",
+            ".7z",
         ]
         if not any([filename.endswith(i) for i in receive_file_type]):
             return jsonify({"message": "文件类型错误", "status": "error"})
@@ -64,6 +69,8 @@ def upload_file():
         db.session.commit()
         # 保存文件名及类型到数据库
         file.save("upload/file/" + filename)
+        logger.info(f"{time.time}：文件{filename}上传成功")
+
         # 保存文件
         return jsonify(
             {
@@ -92,6 +99,8 @@ def upload_text():
         # 保存文件名及类型到数据库
         with open("upload/text/" + filename, "w") as f:
             f.write(data["text"])
+        logger.info(f"{time.time}：文本{filename}上传成功")
+
         return jsonify(
             {
                 "message": "成功上传文本",
@@ -104,13 +113,26 @@ def upload_text():
 @app.route("/api/process", methods=["POST"])
 def process_file():
     file_path = request.get_json()["file_path"]
+    conpress_type = ["zip", "rar", "7z"]
     text_return = textProcess(file_path)
-    if text_return is None:
-        return jsonify({"message": "处理失败", "status": "error"})
+    time_start = time.time()
+    # 超时处理
+    timeout = 1 * 60  # 1分钟
+    while time.time() - time_start < timeout:
+        try:
+            if any(file_path.split(".")[-1] != i for i in conpress_type):
+                text_return = mutiplyTextProcess(file_path)  # 处理压缩多文件
+            else:
+                text_return = textProcess(file_path)  # 处理普通文件
+            if text_return is not None:
+                break
+        except Exception as e:
+            return jsonify({"message": "处理失败", "status": "error", "error": str(e)})
     else:
-        return jsonify(
-            {"message": "处理成功", "status": "success", "text": text_return}
-        )
+        return jsonify({"message": "处理超时", "status": "error", "error": "time out"})
+
+    logger.info(f"{time.time}：文件{file_path}处理成功")
+    return jsonify({"message": "处理成功", "status": "success", "text": text_return})
 
 
 if __name__ == "__main__":
