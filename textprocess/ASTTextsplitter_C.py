@@ -1,24 +1,13 @@
 from tree_sitter import Parser, Language
 
 
-class ASTTextSplitter:
+class ASTTextSplitter_C:
     def __init__(
         self,
         language: str,  # 语言
         node_number: int,  # 每个代码块的节点数
         chunk_size: int = 400,  # 每个代码块的最大长度
     ):
-        accept_languages = [
-            "python",
-            "javascript",
-            "java",
-            "c",
-            "cpp",
-            "go",
-            "php",
-        ]  # 支持语言列表
-        if any(language != lang for lang in accept_languages):
-            raise ValueError(f"Unsupported language: {language}")
         self.language = language
         self.chunk_size = chunk_size
         self.node_number = node_number
@@ -27,13 +16,8 @@ class ASTTextSplitter:
             "build/my-languages.so",
             # Include one or more languages
             [
-                "vendor/tree-sitter-python",
-                "vendor/tree-sitter-javascript",
-                "vendor/tree-sitter-java",
                 "vendor/tree-sitter-c",
                 "vendor/tree-sitter-cpp",
-                "vendor/tree-sitter-go",
-                "vendor/tree-sitter-php",
             ],
         )
 
@@ -50,7 +34,7 @@ class ASTTextSplitter:
         offsets = []
 
         nodes = list(tree.root_node.children)  # 获取根节点的所有子节点
-        cnt = self.nodes_number
+        cnt = self.node_number
 
         for node in nodes:
             if node.type == "class_definition" and cnt == self.node_number:  # 类定义

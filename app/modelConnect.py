@@ -8,7 +8,7 @@ def modelProcess(split_documents):
     url = "http://<flask_server_ip>:<flask_server_port>/"
 
     # 转换数据为 JSON 格式
-    json_data = json.dumps(split_documents)
+    json_data = json.dumps({"split_documents": split_documents})
 
     # 发送数据
     response = requests.post(url, json=json_data)

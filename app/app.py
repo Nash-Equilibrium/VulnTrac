@@ -34,18 +34,19 @@ with app.app_context():
     db.create_all()
 
 
-@app.route("/")
-def index():
-    return "Hello World"
-
-
 @app.route("/api/upload_file", methods=["POST"])
 def upload_file():
     if "file" in request.files and request.files["file"] != "":
         file = request.files["file"]
         # 文件大小检查
         if file.content_length > 1024 * 1024 * 5:
-            return jsonify({"message": "文件大小超过5MB", "status": "error"})
+            return jsonify(
+                {
+                    "message": "文件大小超过5MB",
+                    "status": "error",
+                    "error": "file size too large",
+                }
+            )
         # 文件类型检查
         filename = secure_filename(file.filename)
         receive_file_type = [
@@ -62,7 +63,15 @@ def upload_file():
             ".7z",
         ]
         if not any([filename.endswith(i) for i in receive_file_type]):
-            return jsonify({"message": "文件类型错误", "status": "error"})
+            response = jsonify(
+                {
+                    "message": "文件类型不支持",
+                    "status": "error",
+                    "error": "file type unsupported",
+                }
+            )
+            response.status_code = 400
+            return response
         # 保存文件
         timestamp = time.time()  # 时间戳区分文件
         filename = (
@@ -86,14 +95,22 @@ def upload_file():
             }
         )
     else:  # 上传文件为空
-        return jsonify({"message": "未上传文件", "status": "error"})
+        response = jsonify(
+            {"message": "文件为空", "status": "error", "error": "empty file"}
+        )
+        response.status_code = 400
+        return response
 
 
 @app.route("/api/upload_text", methods=["POST"])
 def upload_text():
     data = request.data
     if data == "":
-        return jsonify({"message": "未上传文本", "status": "error"})
+        response = jsonify(
+            {"message": "文本为空", "status": "error", "error": "empty text"}
+        )
+        response.status_code = 400
+        return response
     else:
         timestamp = time.time()
         filename = "text_" + timestamp + ".txt"
@@ -120,6 +137,22 @@ def upload_text():
 @app.route("/api/process", methods=["POST"])
 def process_file():
     file_path = request.get_json()["file_path"]
+    if file_path is None:
+        response = jsonify(
+            {"message": "文件路径为空", "status": "error", "error": "empty file path"}
+        )
+        response.status_code = 400
+        return response
+    # 数据库查询
+    file_db = File.query.filter_by(
+        filename=file_path.split("/")[-1].split(".")[0]
+    ).first()
+    if not file_db:
+        response = jsonify(
+            {"message": "文件不存在", "status": "error", "error": "file not found"}
+        )
+        response.status_code = 404
+        return response
     conpress_type = ["zip", "rar", "7z"]
     text_return = textProcess(file_path)
     time_start = time.time()
@@ -134,9 +167,17 @@ def process_file():
             if text_return is not None:
                 break
         except Exception as e:
-            return jsonify({"message": "处理失败", "status": "error", "error": str(e)})
+            response = jsonify(
+                {"message": "处理失败", "status": "error", "error": "process error"}
+            )
+            response.status_code = 400
+            return response
     else:
-        return jsonify({"message": "处理超时", "status": "error", "error": "time out"})
+        response = jsonify(
+            {"message": "处理超时", "status": "error", "error": "process timeout"}
+        )
+        response.status_code = 400
+        return response
 
     logger.info(f"{time.time}：文件{file_path}处理成功")
     return jsonify({"message": "处理成功", "status": "success", "text": text_return})

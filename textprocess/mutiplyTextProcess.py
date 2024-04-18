@@ -3,11 +3,12 @@ from langchain.docstore.document import Document
 import voyageai
 from langchain_community.document_loaders import TextLoader
 from pyunpack import Archive
+from dotenv import load_dotenv
 import faiss
 import os
 import pickle
 
-os.environ["VOYAGE_API_KEY"] = "pa-holqOWcNg6Q2JNeVbgh0xCHRw6Wm1xyalGSL7hH1-2Y"
+load_dotenv()
 
 
 def mutiplyTextProcess(file_path: str) -> list:
