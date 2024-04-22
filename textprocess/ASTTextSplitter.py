@@ -1,4 +1,5 @@
 from tree_sitter import Parser, Language
+import re
 
 
 class ASTTextSplitter:
@@ -50,27 +51,41 @@ class ASTTextSplitter:
         offsets = []
 
         nodes = list(tree.root_node.children)  # 获取根节点的所有子节点
-        cnt = self.nodes_number
 
-        for node in nodes:
-            if node.type == "class_definition" and cnt == self.node_number:  # 类定义
-                end_byte = node.end_byte
-                offsets.append(end_byte)
-            if (
-                node.type == "function_definition" and cnt == self.node_number
-            ):  # 函数定义
-                end_byte = node.end_byte
-                offsets.append(end_byte)
-            if cnt == 1:
-                cnt = self.node_number
-            cnt -= 1
+        def get_node_range(node):
+            start_byte = node.start_byte
+            end_byte = node.end_byte
+            return start_byte, end_byte
 
         chunks = []
-        start = 0
-        for offset in offsets:  # 按offset切分代码块
-            chunk = text[start:offset]
-            chunks.append(chunk)
-            start = offset
-        chunks.append(text[start:])
+        current_chunk = []
+        counter = 0
+
+        # 遍历所有节点
+        for node in nodes:
+            if node.type in ["function_definition", "class_definition"]:
+                start_byte, end_byte = get_node_range(node)
+                chunk = text[start_byte:end_byte]
+                current_chunk.append(chunk)
+                counter += 1
+
+                # 处理嵌套定义
+                nested_nodes = list(node.children)
+                for nested_node in nested_nodes:
+                    if nested_node.type in ["function_definition", "class_definition"]:
+                        nested_start, nested_end = get_node_range(nested_node)
+                        nested_chunk = text[nested_start:nested_end]
+                        current_chunk.append(nested_chunk)
+                        counter += 1
+
+                # 每隔 n 个函数或类定义进行一次切割
+                if counter >= self.node_number:
+                    chunks.append("\n".join(current_chunk))
+                    current_chunk = []
+                    counter = 0
+
+        # 利用正则表达式去除空白行
+        chunks = [re.sub(r"^\n+", "", chunk) for chunk in chunks]
+        chunks = [re.sub(r"\n+$", "", chunk) for chunk in chunks]
 
         return chunks
