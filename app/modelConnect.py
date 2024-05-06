@@ -11,8 +11,11 @@ def modelProcess(split_documents):
     json_data = json.dumps({"split_documents": split_documents})
 
     # 发送数据
-    response = requests.post(url, json=json_data)
-
+    try:
+        response = requests.post(url + "api/model_process", data=json_data)
+    except requests.exceptions.RequestException as e:
+        print("Failed to send data.")
+        return
     # 判断是否发送成功
     if response.status_code == 200:
         print("Data sent successfully.")

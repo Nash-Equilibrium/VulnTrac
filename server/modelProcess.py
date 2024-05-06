@@ -148,7 +148,7 @@ def chat():
         input_variables=["bug_summarize"], template=SUMMARIZE_TEMPLATE
     )
     summarize_chain = LLMChain(llm=llm, prompt=summarize_prompt_template)
-    summarize_result = summarize_chain.run(results)
+    summarize_result = summarize_chain.run("\n".join(str(result) for result in results))
 
     return json.dumps({"response": summarize_result})
 
