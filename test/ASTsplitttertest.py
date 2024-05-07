@@ -2,7 +2,7 @@ import sys
 
 sys.path.append("..")
 
-from textprocess.ASTTextSplitter import ASTTextSplitter
+from util.ASTTextSplitter import ASTTextSplitter
 
 python_code = """
 def foo():

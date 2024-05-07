@@ -6,10 +6,12 @@ class ASTTextSplitter:
     def __init__(
         self,
         node_number: int,  # 每个代码块的节点数
+        overlap: int = 1,  # 重叠节点数
         chunk_size: int = 400,  # 每个代码块的最大长度
     ):
         self.chunk_size = chunk_size
         self.node_number = node_number
+        self.overlap = overlap
         Language.build_library(
             # Store the library in the `build` directory
             "build/my-languages.so",
@@ -76,8 +78,9 @@ class ASTTextSplitter:
 
                 # 每隔 n 个函数或类定义进行一次切割
                 if counter >= self.node_number:
-                    chunks.append("\n".join(current_chunk))
-                    current_chunk = []
+                    overlap_chunk = current_chunk[-self.overlap :]
+                    chunks.append("".join(current_chunk))
+                    current_chunk = overlap_chunk
                     counter = 0
 
         # 利用正则表达式去除空白行

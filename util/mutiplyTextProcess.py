@@ -1,4 +1,4 @@
-from ASTTextSplitter import ASTTextSplitter
+from . import ASTTextSplitter
 import voyageai
 from pyunpack import Archive
 from dotenv import load_dotenv
@@ -23,7 +23,7 @@ def mutiplyTextProcess(file_path: str) -> list:
     file_list = os.listdir("upload/" + file_name)
 
     # 初始化代码分割器
-    text_splitter = ASTTextSplitter(2)
+    text_splitter = ASTTextSplitter.ASTTextSplitter(2)
 
     # 切分文本
     split_documents = []

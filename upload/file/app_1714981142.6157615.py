@@ -1,12 +1,12 @@
 from flask import Flask, request, jsonify
-from util.textProcess import textProcess
-from util.mutiplyTextProcess import mutiplyTextProcess
+from textprocess.textProcess import textProcess
+from textprocess.mutiplyTextProcess import mutiplyTextProcess
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
 from loguru import logger
 from datetime import datetime
-from tasks import celery, repoMonitor
 from flask_login import (
     LoginManager,
     UserMixin,
@@ -20,24 +20,18 @@ import threading
 import ctypes
 import time
 import os
-import atexit
 
 
 # 日志配置
 logger.add("app.log", rotation="50MB", retention="10 days", level="INFO", colorize=True)
 
 
-# Flask配置
+# Flask和数据库配置
+load_dotenv()
 app = Flask(__name__)
-app.config.from_object("config")
 CORS(app)
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
 db = SQLAlchemy(app)
-
-# celery配置
-celery.conf.update(
-    broker_url=app.config["CELERY_BROKER_URL"],
-    result_backend=app.config["CELERY_RESULT_BACKEND"],
-)
 
 
 # File表
@@ -76,15 +70,6 @@ class History(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     file_id = db.Column(db.Integer, db.ForeignKey("file.id"))
     analysis_id = db.Column(db.Integer, db.ForeignKey("analysis.id"))
-    created_at = db.Column(db.DateTime, default=datetime.now)
-
-
-# repo表
-class Repo(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    repo_name = db.Column(db.String(100), nullable=False)
-    repo_url = db.Column(db.String(100), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     created_at = db.Column(db.DateTime, default=datetime.now)
 
 
@@ -205,7 +190,7 @@ def upload_file():
             {
                 "message": "成功上传文件",
                 "status": "success",
-                "filePath": "upload/file/" + filename,
+                "file_path": "upload/file/" + filename,
             }
         )
     else:  # 上传文件为空
@@ -324,66 +309,6 @@ def process_file():
     response = run_with_timeout(file_process, (file_path,), timeout)
     return response
 
-
-# 仓库监测
-@app.route("/api/repo_monitor", methods=["POST"])
-# @login_required
-def repo_monitor():
-    repo_url = request.form["repo_url"]
-    repo_name = request.form["repo_name"]
-    if repo_url == " " or repo_url is None:
-        response = jsonify(
-            {"message": "仓库地址为空", "status": "error", "error": "empty repo url"}
-        )
-        response.status_code = 400
-        return response
-    if repo_name == " " or repo_name is None:
-        response = jsonify(
-            {"message": "仓库名为空", "status": "error", "error": "empty repo name"}
-        )
-        response.status_code = 400
-        return response
-    # 写入数据库
-
-    repo_db = Repo(repo_name=repo_name, repo_url=repo_url, user_id=user_id)
-    with app.app_context():
-        db.session.add(repo_db)
-        db.session.commit()
-    logger.info(f"{time.time()}：仓库{repo_url}加入监测成功")
-    # 调用 repoMonitor 任务
-    user_id = current_user.get_id()
-    user = User.query.filter_by(id=user_id).first()
-    user_email, username = user.email, user.username
-    repoMonitor.delay(repo_url, user_email, username)
-
-    return jsonify({"message": "仓库加入监测成功", "status": "success"})
-
-
-# 添加钩子函数,在应用退出时关闭 Celery
-def shutdown_celery_worker():
-    celery.control.broadcast("shutdown", destination=["celery@worker"])
-
-
-atexit.register(shutdown_celery_worker)
-
-
-"""
-# 发送邮件
-@app.route("/api/send_email", methods=["POST"])
-# @login_required
-def send_email():
-    # 查询用户邮箱
-    user_id = current_user.get_id()
-    user = User.query.filter_by(id=user_id).first()
-    email, username = user.email, user.username
-    attachment_path = request.form["attachment_path"]
-    if sendMail(email, username, attachment_path):
-        return jsonify({"message": "邮件发送成功", "status": "success"})
-    else:
-        # 发送邮件
-        return jsonify({"message": "邮件发送失败", "status": "failed"})
-
-"""
 
 if __name__ == "__main__":
     app.run(debug=True)
