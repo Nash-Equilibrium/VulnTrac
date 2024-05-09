@@ -1,16 +1,19 @@
-# tasks.py
 from celery import Celery
-from flask import Flask
 import smtplib
 from email.mime.text import MIMEText
 from email.utils import formataddr
 from email.mime.multipart import MIMEMultipart
 from email import encoders
 from email.mime.base import MIMEBase
-import os
+from datetime import datetime
+from git import Repo as GitRepo
+import hashlib
+import requests
+from app import app, db
+from models import Repo
 
-app = Flask(__name__)
-app.config.from_object("config")
+from util.mutiplyTextProcess import mutiplyTextProcess
+import os
 
 
 def make_celery(app):
@@ -35,14 +38,50 @@ celery = make_celery(app)
 
 @celery.task
 def repoMonitor(repo_url, user_email, username):
-    # 执行仓库检测逻辑
-    # ...
 
-    # 假设检测结果保存在 report.pdf 文件中
-    report_path = "report.pdf"
+    def download_repo_zip(repo_url, save_path):
+        # 将GitHub仓库URL转换为zip文件URL
+        zip_url = (
+            repo_url + "/archive/refs/heads/main.zip"
+        )  # 如果默认分支不是main，请修改这里
 
-    # 获取用户邮箱地址
-    user_email = "user@example.com"  # 从数据库获取
+        # 发送GET请求
+        response = requests.get(zip_url)
+
+        # 确保请求成功
+        response.raise_for_status()
+
+        # 写入文件
+        with open(save_path, "wb") as f:
+            f.write(response.content)
+
+    # 下载最新的压缩包
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    latest_archive_path = (
+        f"C:\\Users\\ray\\Desktop\\ciscn\\ciscn\\repo\\repofile\\{timestamp}.zip"
+    )
+    download_repo_zip(repo_url, save_path)
+
+    # 计算最新压缩包的哈希值
+    with open(latest_archive_path, "rb") as f:
+        latest_archive_hash = hashlib.sha256(f.read()).hexdigest()
+
+    with app.app_context():
+        repo = Repo.query.get(repo_url)
+        if not repo:
+            return
+    # 如果压缩包有变化,则进行漏洞检测
+    if repo.last_archive_hash != latest_archive_hash:
+        pass
+        # 执行漏洞检测逻辑，生成报告
+        # ...
+
+    # 更新数据库中的压缩包信息
+    repo.last_archive_hash = latest_archive_hash
+    repo.last_checked_at = datetime.now()
+    db.session.commit()
+
+    os.remove(latest_archive_path)
 
     # 调用 sendMail 任务发送报告
     sendMail.delay(user_email, username, report_path)

@@ -5,8 +5,6 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from loguru import logger
-from datetime import datetime
-from tasks import celery, repoMonitor
 from flask_login import (
     LoginManager,
     UserMixin,
@@ -26,12 +24,13 @@ import atexit
 # 日志配置
 logger.add("app.log", rotation="50MB", retention="10 days", level="INFO", colorize=True)
 
-
 # Flask配置
 app = Flask(__name__)
 app.config.from_object("config")
 CORS(app)
 db = SQLAlchemy(app)
+
+from models import User, File, Repo, Analysis, History
 
 # celery配置
 celery.conf.update(
@@ -40,54 +39,21 @@ celery.conf.update(
 )
 
 
-# File表
-class File(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    file_name = db.Column(db.String(100), nullable=False)
-    file_type = db.Column(db.String(10), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    created_at = db.Column(db.DateTime, default=datetime.now)
+# 定时执行监测任务
+from celery.schedules import crontab
+from tasks import celery, repoMonitor
 
+app.config.update(
+    CELERYBEAT_SCHEDULE={
+        "repo_monitor": {
+            "task": "tasks.repoMonitor",
+            "schedule": crontab(minute=0, hour="*/24"),  # 每 24 小时执行一次
+            "args": (Repo.query.with_entities(Repo.id).all(),),  # 传递所有仓库 ID
+        },
+    }
+)
 
-# User表
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), nullable=False)
-    password = db.Column(db.String(20), nullable=False)
-    email = db.Column(db.String(50), nullable=False)
-    role = db.Column(db.String(10), nullable=False)  # 0:普通用户 1:管理员
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now)
-
-
-# Analysis表
-class Analysis(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    file_id = db.Column(db.Integer, db.ForeignKey("file.id"))
-    result = db.Column(db.String(2000), nullable=False)
-    status = db.Column(db.String(10), nullable=False)  # 0:未处理 1:处理中 2:处理完成
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now)
-
-
-# History表
-class History(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    file_id = db.Column(db.Integer, db.ForeignKey("file.id"))
-    analysis_id = db.Column(db.Integer, db.ForeignKey("analysis.id"))
-    created_at = db.Column(db.DateTime, default=datetime.now)
-
-
-# repo表
-class Repo(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    repo_name = db.Column(db.String(100), nullable=False)
-    repo_url = db.Column(db.String(100), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    created_at = db.Column(db.DateTime, default=datetime.now)
-
-
+# 数据库初始化
 with app.app_context():
     db.create_all()
 
@@ -319,7 +285,7 @@ def process_file():
                 return response
         return result
 
-    timeout = 1 * 60  # 1分钟
+    timeout = 3 * 60  # 3分钟
 
     response = run_with_timeout(file_process, (file_path,), timeout)
     return response
