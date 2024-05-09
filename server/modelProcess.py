@@ -150,7 +150,7 @@ def chat():
     summarize_chain = LLMChain(llm=llm, prompt=summarize_prompt_template)
     summarize_result = summarize_chain.run("\n".join(str(result) for result in results))
 
-    return json.dumps({"response": summarize_result})
+    return json.dumps({"results": summarize_result})
 
 
 if __name__ == "__main__":

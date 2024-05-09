@@ -3,7 +3,7 @@ from util.textProcess import textProcess
 from util.mutiplyTextProcess import mutiplyTextProcess
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_sqlalchemy import SQLAlchemy
+from init import db, app
 from loguru import logger
 from flask_login import (
     LoginManager,
@@ -13,7 +13,6 @@ from flask_login import (
     logout_user,
     current_user,
 )
-from flask_cors import CORS
 import threading
 import ctypes
 import time
@@ -24,33 +23,18 @@ import atexit
 # 日志配置
 logger.add("app.log", rotation="50MB", retention="10 days", level="INFO", colorize=True)
 
-# Flask配置
-app = Flask(__name__)
-app.config.from_object("config")
-CORS(app)
-db = SQLAlchemy(app)
 
 from models import User, File, Repo, Analysis, History
-
-# celery配置
-celery.conf.update(
-    broker_url=app.config["CELERY_BROKER_URL"],
-    result_backend=app.config["CELERY_RESULT_BACKEND"],
-)
 
 
 # 定时执行监测任务
 from celery.schedules import crontab
 from tasks import celery, repoMonitor
 
-app.config.update(
-    CELERYBEAT_SCHEDULE={
-        "repo_monitor": {
-            "task": "tasks.repoMonitor",
-            "schedule": crontab(minute=0, hour="*/24"),  # 每 24 小时执行一次
-            "args": (Repo.query.with_entities(Repo.id).all(),),  # 传递所有仓库 ID
-        },
-    }
+# celery配置
+celery.conf.update(
+    broker_url=app.config["CELERY_BROKER_URL"],
+    result_backend=app.config["CELERY_RESULT_BACKEND"],
 )
 
 # 数据库初始化
@@ -59,6 +43,18 @@ with app.app_context():
 
     login_manager = LoginManager()
     login_manager.init_app(app)
+
+
+with app.app_context():
+    app.config.update(
+        CELERYBEAT_SCHEDULE={
+            "repo_monitor": {
+                "task": "tasks.repoMonitor",
+                "schedule": crontab(minute=0, hour="*/24"),  # 每 24 小时执行一次
+                "args": (Repo.query.with_entities(Repo.id).all(),),  # 传递所有仓库 ID
+            },
+        }
+    )
 
 
 @login_manager.user_loader

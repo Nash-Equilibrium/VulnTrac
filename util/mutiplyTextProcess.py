@@ -18,7 +18,7 @@ def mutiplyTextProcess(file_path: str) -> list:
         return
 
     # 解压文件
-    file_name = file_path.split("/")[-1]
+    file_name = os.path.splitext(file_path)[0]
     Archive(file_path).extractall("upload/" + file_name)
     file_list = os.listdir("upload/" + file_name)
 
@@ -27,6 +27,7 @@ def mutiplyTextProcess(file_path: str) -> list:
 
     # 切分文本
     split_documents = []
+
     type_dict = {
         "py": "python",
         "js": "javascript",
@@ -35,7 +36,15 @@ def mutiplyTextProcess(file_path: str) -> list:
         "cpp": "cpp",
         "go": "go",
     }
-    for file in file_list:
+    # 维护过滤列表
+    filtered_extensions = ["py", "js", "java", "c", "cpp", "go"]
+
+    # 文件过滤
+    filtered_file_list = [
+        file for file in file_list if file.split(".")[-1] in filtered_extensions
+    ]
+
+    for file in filtered_file_list:
         file_type = file.split(".")[-1]
         language = type_dict[file_type]
         with open(f"upload/{file_name}/{file}", "r") as f:
