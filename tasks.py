@@ -112,7 +112,7 @@ def repoMonitor(repo_url, user_email, username):
     config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
     # 将 HTML 转换为 PDF 文件
-    pdf_dir = r"C:\Users\ray\Desktop\ciscn\ciscn\reports"
+    pdf_dir = r"C:\Users\ray\Desktop\ciscn\ciscn\reports\repo"
     pdf_name = f"{filename}.pdf"
     pdf_file_path = os.path.join(pdf_dir, pdf_name)
     pdfkit.from_string(html, pdf_file_path, options=options, configuration=config)
