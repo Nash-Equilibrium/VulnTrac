@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import request, jsonify
 from util.textProcess import textProcess
 from util.mutiplyTextProcess import mutiplyTextProcess
+from util.mailsend import mailsend
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from init import db, app
@@ -18,6 +19,8 @@ import ctypes
 import time
 import os
 import atexit
+import random
+import re
 
 
 # 日志配置
@@ -107,6 +110,37 @@ def login():
 def logout():
     logout_user()
     return jsonify({"message": "Logout successful", "status": "success"})
+
+
+# 发送邮件
+@app.post("/api/send_register_sms")
+def send_register_sms():
+    # 1. 解析前端传递过来的数据
+    data = request.get_json()
+    email = data["email"]
+
+    # 2. 校验邮箱
+    pattern = r"^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$"  # 邮箱校验，防止前端绕过
+    ret = re.match(pattern, email)
+    if not ret:
+        return {"message": "邮箱不符合格式", "status": "error"}
+
+    # 3.1 生成随机验证码
+    my_sender = "439824791@qq.com"  # 发件人邮箱账号
+    my_pass = "rvxqnakagumybjde"  # 发件人邮箱授权码
+    my_user = email  # 收件人邮箱账号
+    mailcode = random.choices("123456789", k=6)  # 生成随机验证码
+    text = "".join(mailcode)  # 将验证码转换为字符串
+    ret = mailsend(my_sender, my_pass, my_user, text)  # 发送邮件
+
+    if ret:
+        return {
+            "message": "发送邮箱验证码成功",
+            "status": "success",
+            "mailcode": mailcode,
+        }
+    else:
+        return {"message": "发送邮箱验证码失败", "status": "error"}
 
 
 # 上传文件
@@ -328,24 +362,6 @@ def shutdown_celery_worker():
 
 atexit.register(shutdown_celery_worker)
 
-
-"""
-# 发送邮件
-@app.route("/api/send_email", methods=["POST"])
-# @login_required
-def send_email():
-    # 查询用户邮箱
-    user_id = current_user.get_id()
-    user = User.query.filter_by(id=user_id).first()
-    email, username = user.email, user.username
-    attachment_path = request.form["attachment_path"]
-    if sendMail(email, username, attachment_path):
-        return jsonify({"message": "邮件发送成功", "status": "success"})
-    else:
-        # 发送邮件
-        return jsonify({"message": "邮件发送失败", "status": "failed"})
-
-"""
 
 if __name__ == "__main__":
     app.run(debug=True)
