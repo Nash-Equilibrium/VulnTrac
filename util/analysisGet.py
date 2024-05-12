@@ -6,7 +6,7 @@ import markdown
 import time
 
 
-def analysisGet(filename: str, documents: list):
+def analysisGet(filename: str, documents: list) -> str:
     payload = json.dumps({"documents": documents})
 
     # 设置请求头
