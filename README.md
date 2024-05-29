@@ -31,6 +31,10 @@
 
 # 启动方法
 `由于模型的微调尚未完成，故暂未提供模型文件下载。微调完成后会同步至Huggingface与Modelscope。`
+
+​	
+
+1. vendor文件夹需自行clone构建，在tree-sitter官方代码库clone对应语言解析库到vendor文件夹下，网址如下https://tree-sitter.github.io/tree-sitter/
 1. 安装Redis，启动redis-server。
 2. 启动celery ，在另一个终端执行：
 ```shell

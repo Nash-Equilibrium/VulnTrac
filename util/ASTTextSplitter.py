@@ -46,8 +46,6 @@ class ASTTextSplitter:
         parser.set_language(LANGUAGE)
         tree = parser.parse(bytes(text, "utf-8"))
 
-        offsets = []
-
         nodes = list(tree.root_node.children)  # 获取根节点的所有子节点
 
         def get_node_range(node):
@@ -58,23 +56,27 @@ class ASTTextSplitter:
         chunks = []
         current_chunk = []
         counter = 0
+        first_node = True
 
         # 遍历所有节点
         for node in nodes:
             if node.type in ["function_definition", "class_definition"]:
                 start_byte, end_byte = get_node_range(node)
+                if first_node:
+                    first_node = False
+                    current_chunk.append(text[:start_byte])
                 chunk = text[start_byte:end_byte]
                 current_chunk.append(chunk)
                 counter += 1
 
-                # 处理嵌套定义
+                """ # 处理嵌套定义
                 nested_nodes = list(node.children)
                 for nested_node in nested_nodes:
                     if nested_node.type in ["function_definition", "class_definition"]:
                         nested_start, nested_end = get_node_range(nested_node)
                         nested_chunk = text[nested_start:nested_end]
                         current_chunk.append(nested_chunk)
-                        counter += 1
+                        counter += 1 """
 
                 # 每隔 n 个函数或类定义进行一次切割
                 if counter >= self.node_number:
@@ -87,6 +89,8 @@ class ASTTextSplitter:
                         chunks.append("".join(current_chunk))
                         current_chunk = overlap_chunk
                         counter = 0
+        # 处理剩余的代码
+        chunks.append("".join(text[end_byte:]))
 
         # 利用正则表达式去除空白行
         chunks = [re.sub(r"^\n+", "", chunk) for chunk in chunks]
