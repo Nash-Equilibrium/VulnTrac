@@ -1,0 +1,17 @@
+celery==5.4.0
+faiss_cpu==1.8.0
+Flask==3.0.3
+Flask_Cors==4.0.1
+Flask_Login==0.6.3
+flask_sqlalchemy==3.1.1
+langchain==0.2.1
+loguru==0.7.2
+Markdown==3.6
+pdfkit==1.0.0
+python-dotenv==1.0.1
+pyunpack==0.3
+Requests==2.32.2
+transformers==4.39.1
+tree_sitter==0.21.3
+voyageai==0.2.3
+Werkzeug==3.0.3
