@@ -4,8 +4,8 @@
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 如果不存在，则创建vendor和build目录
-mkdir -p "$DIR/vendor"
-mkdir -p "$DIR/build"
+mkdir -p "$DIR/vulnCore/vendor"
+mkdir -p "$DIR/vulnCore/build"
 
 # 克隆并构建一个tree-sitter语法的函数
 build_grammar() {
@@ -14,12 +14,12 @@ build_grammar() {
     local lang_name=$3
 
     # 如果目录不存在，则克隆仓库
-    if [ ! -d "$DIR/vendor/$repo_dir" ]; then
-        git clone $repo_url "$DIR/vendor/$repo_dir"
+    if [ ! -d "$DIR/vulnCore/vendor/$repo_dir" ]; then
+        git clone $repo_url "$DIR/vulnCore/vendor/$repo_dir"
     fi
 
     # 进入仓库目录
-    cd "$DIR/vendor/$repo_dir"
+    cd "$DIR/vulnCore/vendor/$repo_dir"
     
     # 编译共享库，检查 src 目录下的文件存在性
     if [ -f "src/scanner.c" ]; then
@@ -37,4 +37,4 @@ build_grammar https://github.com/tree-sitter/tree-sitter-go tree-sitter-go go
 build_grammar https://github.com/tree-sitter/tree-sitter-java tree-sitter-java java
 build_grammar https://github.com/tree-sitter/tree-sitter-javascript tree-sitter-javascript javascript
 
-echo "Tree-sitter语法库已编译并放置在build目录中。"
+echo "Tree-sitter语法库已编译并放置在/vulnCore/build目录中。"
