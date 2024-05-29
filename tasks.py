@@ -8,7 +8,7 @@ from email.mime.base import MIMEBase
 from datetime import datetime
 import hashlib
 import requests
-from models import Repo
+from dbTables import Repo
 from init import db, app
 from util.mutiplyTextProcess import mutiplyTextProcess
 import os

@@ -29,7 +29,7 @@ import re
 logger.add("app.log", rotation="50MB", retention="10 days", level="INFO", colorize=True)
 
 
-from models import User, File, Repo, Analysis, History, get_user
+from dbTables import User, File, Repo, Analysis, History, get_user
 
 
 # 定时执行监测任务
