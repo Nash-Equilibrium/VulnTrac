@@ -5,7 +5,7 @@ import re
 class ASTTextSplitter:
     def __init__(
         self,
-        node_number: int,  # 每个代码块的节点数
+        node_number: int = 2,  # 每个代码块的节点数
         overlap: int = 1,  # 重叠节点数
         chunk_size: int = 400,  # 每个代码块的最大长度
     ):
@@ -78,10 +78,15 @@ class ASTTextSplitter:
 
                 # 每隔 n 个函数或类定义进行一次切割
                 if counter >= self.node_number:
-                    overlap_chunk = current_chunk[-self.overlap :]
-                    chunks.append("".join(current_chunk))
-                    current_chunk = overlap_chunk
-                    counter = 0
+                    if self.overlap == 0:
+                        chunks.append("".join(current_chunk))
+                        current_chunk = []
+                        counter = 0
+                    else:
+                        overlap_chunk = current_chunk[-self.overlap :]
+                        chunks.append("".join(current_chunk))
+                        current_chunk = overlap_chunk
+                        counter = 0
 
         # 利用正则表达式去除空白行
         chunks = [re.sub(r"^\n+", "", chunk) for chunk in chunks]
