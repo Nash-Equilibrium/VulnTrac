@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import request, jsonify
 from util.textProcess import textProcess
-from util.mutiplyTextProcess import mutiplyTextProcess
+from util.multi_TextProcess import multi_TextProcess
 from util.mailsend import mailsend
 from util.analysisGet import analysisGet
 from werkzeug.utils import secure_filename
@@ -303,7 +303,7 @@ def process_file():
         conpress_type = ["zip", "rar", "7z"]
         try:
             if any(file_path.split(".")[-1] == i for i in conpress_type):
-                text_return = mutiplyTextProcess(file_path)  # 处理压缩多文件
+                text_return = multi_TextProcess(file_path)  # 处理压缩多文件
                 pdf_path = analysisGet(filename, text_return)
             else:
                 text_return = textProcess(file_path)  # 处理普通文件

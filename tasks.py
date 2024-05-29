@@ -10,7 +10,7 @@ import hashlib
 import requests
 from dbTables import Repo
 from init import db, app
-from util.mutiplyTextProcess import mutiplyTextProcess
+from util.multi_TextProcess import multi_TextProcess
 import os
 import requests
 import json
@@ -75,7 +75,7 @@ def repoMonitor(repo_url, user_email, username):
             return
     # 如果压缩包有变化,则进行漏洞检测
     if repo.last_archive_hash != latest_archive_hash:
-        documents = mutiplyTextProcess(latest_archive_path)
+        documents = multi_TextProcess(latest_archive_path)
         # 将文档列表转换为 JSON 格式
         payload = json.dumps({"documents": documents})
 
