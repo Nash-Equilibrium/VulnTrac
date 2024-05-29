@@ -9,7 +9,7 @@ import pickle
 load_dotenv()
 
 
-def multi_TextProcess(file_path: str) -> list:
+def multiFileProcess(file_path: str) -> list:
     """
     处理多文件文本
     """
