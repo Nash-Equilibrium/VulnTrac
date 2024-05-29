@@ -13,6 +13,7 @@ def getReport(filename: str, documents: list) -> str:
     headers = {"Content-Type": "application/json"}
 
     # 发送 POST 请求
+    # 这里需要更改为模型所在服务器的IP地址
     url = "https://your-server.com/chat"
     response = requests.request("POST", url, headers=headers, data=payload)
 
@@ -38,10 +39,13 @@ def getReport(filename: str, documents: list) -> str:
         "margin-left": "0.75in",
         "encoding": "UTF-8",
     }
+
+    #pdfkit支撑应用
     path_wkhtmltopdf = r"C:\Users\ray\Desktop\ciscn\wkhtmltopdf\bin\wkhtmltopdf.exe"
     config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
     # 将 HTML 转换为 PDF 文件
+    # 存放地址可以修改，之后部署的话需要放在服务器上
     pdf_dir = r"C:\Users\ray\Desktop\ciscn\ciscn\reports\normal"
     timestamp = time.time()
     pdf_name = filename + "_" + timestamp + ".pdf"

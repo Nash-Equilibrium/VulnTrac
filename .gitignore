@@ -31,3 +31,4 @@ bin/
 ### Config Files ###
 config.properties
 .gitignore
+__pycache__

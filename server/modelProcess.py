@@ -95,8 +95,7 @@ def chat():
     llm = Qwen()
 
     # location 链
-
-    LOCATION_TEMPLATE = """ You're a professional code bug fix engineer.
+    LOCATE_TEMPLATE = """ You're a professional code bug fix engineer.
       You've been asked to fix a bug in a piece of code.
       You need to find out the location of the bug in the code and just return the code.
       And you need to tell me what is the kind of bug in the code.
@@ -105,9 +104,10 @@ def chat():
     
     YOUR RESPONSE:  
     """
+
     # 构造prompt
     location_prompt_template = PromptTemplate(
-        input_variables=["bug_location"], template=LOCATION_TEMPLATE
+        input_variables=["bug_location"], template=LOCATE_TEMPLATE
     )
     location_chain = LLMChain(llm=llm, prompt=location_prompt_template)
 
