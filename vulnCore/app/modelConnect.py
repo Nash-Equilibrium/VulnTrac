@@ -16,6 +16,7 @@ def modelProcess(split_documents):
     except requests.exceptions.RequestException as e:
         print("Failed to send data.")
         return
+    
     # 判断是否发送成功
     if response.status_code == 200:
         print("Data sent successfully.")
