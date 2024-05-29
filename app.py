@@ -2,8 +2,8 @@ from datetime import datetime
 from flask import request, jsonify
 from util.textProcess import textProcess
 from util.multi_TextProcess import multi_TextProcess
-from util.mailsend import mailsend
-from util.analysisGet import analysisGet
+from util.sendMail import mailsend
+from util.getReport import analysisGet
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from init import db, app
