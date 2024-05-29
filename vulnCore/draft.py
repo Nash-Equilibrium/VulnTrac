@@ -1,4 +1,4 @@
-from vulnCore.util.codeSplitter import astSplitter
+from util.codeSplitter import astSplitter
 
 
 myast = astSplitter(node_number=1, overlap=0, chunk_size=400)

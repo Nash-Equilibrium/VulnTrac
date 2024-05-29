@@ -10,7 +10,7 @@ import hashlib
 import requests
 from dbTables import Repo
 from init import db, app
-from vulnCore.util.multiFileProcess import multiFileProcess
+from util.multiFileProcess import multiFileProcess
 import os
 import requests
 import json

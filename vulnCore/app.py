@@ -1,9 +1,9 @@
 from datetime import datetime
 from flask import request, jsonify
-from vulnCore.util.textProcess import textProcess
-from vulnCore.util.multiFileProcess import multiFileProcess
-from vulnCore.util.sendMail import mailsend
-from vulnCore.util.getReport import getReport
+from util.textProcess import textProcess
+from util.multiFileProcess import multiFileProcess
+from util.sendMail import mailsend
+from util.getReport import getReport
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from init import db, app

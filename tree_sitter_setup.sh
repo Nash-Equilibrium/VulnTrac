@@ -23,9 +23,9 @@ build_grammar() {
     
     # 编译共享库，检查 src 目录下的文件存在性
     if [ -f "src/scanner.c" ]; then
-        gcc -o "$DIR/build/tree_sitter_${lang_name}.so" -shared -fPIC src/parser.c src/scanner.c
+        gcc -o "$DIR/vulnCore/build/tree_sitter_${lang_name}.so" -shared -fPIC src/parser.c src/scanner.c
     else
-        gcc -o "$DIR/build/tree_sitter_${lang_name}.so" -shared -fPIC src/parser.c
+        gcc -o "$DIR/vulnCore/build/tree_sitter_${lang_name}.so" -shared -fPIC src/parser.c
     fi
 }
 
