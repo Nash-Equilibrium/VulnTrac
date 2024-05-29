@@ -34,3 +34,5 @@ config.properties
 __pycache__
 /vendor
 /build
+vulnCore/vendor/tree-sitter-c
+vulnCore/vendor/tree-sitter-cpp
