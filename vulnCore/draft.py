@@ -1,5 +1,8 @@
 from util.codeSplitter import astSplitter
+import os
 
+# 工作目录问题
+os.chdir("..")
 
 myast = astSplitter(node_number=1, overlap=0, chunk_size=400)
 
