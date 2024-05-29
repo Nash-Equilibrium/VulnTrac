@@ -1,4 +1,4 @@
-from . import ASTTextSplitter
+from . import codeSplitter
 import voyageai
 from pyunpack import Archive
 from dotenv import load_dotenv
@@ -23,7 +23,7 @@ def multiFileProcess(file_path: str) -> list:
     file_list = os.listdir("upload/" + file_name)
 
     # 初始化代码分割器
-    text_splitter = ASTTextSplitter.ASTTextSplitter(2)
+    text_splitter = codeSplitter.astSplitter(2)
 
     # 切分文本
     split_documents = []
@@ -49,7 +49,7 @@ def multiFileProcess(file_path: str) -> list:
         language = type_dict[file_type]
         with open(f"upload/{file_name}/{file}", "r") as f:
             text = f.read()
-        split_documents.extend(text_splitter.create_documents(text, language))
+        split_documents.extend(text_splitter.createCodeChunk(text, language))
 
     # 嵌入embedding层
     if os.path.exists(f"embedding/{file_name}.pkl"):

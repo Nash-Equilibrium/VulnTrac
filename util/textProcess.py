@@ -1,4 +1,4 @@
-from . import ASTTextSplitter
+from . import codeSplitter
 
 
 def textProcess(file_path: str) -> list:
@@ -10,7 +10,7 @@ def textProcess(file_path: str) -> list:
         return
 
     # 初始化代码分割器
-    text_splitter = ASTTextSplitter.ASTTextSplitter(2)
+    text_splitter = codeSplitter.astSplitter(2)
 
     # 切分文本
     split_documents = []
@@ -26,6 +26,6 @@ def textProcess(file_path: str) -> list:
     language = type_dict[file_type]
     with open(file_path, "r") as f:
         text = f.read()
-    split_documents.extend(text_splitter.create_documents(text, language))
+    split_documents.extend(text_splitter.createCodeChunk(text, language))
 
     return split_documents

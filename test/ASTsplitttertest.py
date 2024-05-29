@@ -1,8 +1,4 @@
-import sys
-
-sys.path.append("..")
-
-from util.ASTTextSplitter import ASTTextSplitter
+from util.codeSplitter import astSplitter
 
 python_code = """
 def foo():
@@ -27,7 +23,7 @@ class Grault:
             pass
 """
 
-splitter = ASTTextSplitter("python", 2)
-documents = splitter.create_documents(python_code)
+splitter = astSplitter("python", 2)
+documents = splitter.createCodeChunk(python_code)
 for document in documents:
     print(document + "\n")
