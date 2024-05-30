@@ -8,7 +8,7 @@ def mailsend(my_sender, my_pass, my_user, text):
     try:
         msg = MIMEText("验证码为：" + text, "plain", "utf-8")
         msg["From"] = formataddr(
-            ["From ray", my_sender]
+            ["From VualTrac", my_sender]
         )  # 括号里的对应发件人邮箱昵称、发件人邮箱账号
         msg["To"] = formataddr(
             ["For you", my_user]

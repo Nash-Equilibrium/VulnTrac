@@ -3,19 +3,12 @@ import re
 
 
 class ASTTextSplitter:
-    def __init__(
-        self,
-        node_number: int = 2,  # 每个代码块的节点数
-        overlap: int = 1,  # 重叠节点数
-        chunk_size: int = 400,  # 每个代码块的最大长度
-    ):
+    def __init__(self, node_number: int = 2, overlap: int = 1, chunk_size: int = 400):
         self.chunk_size = chunk_size
         self.node_number = node_number
         self.overlap = overlap
         Language.build_library(
-            # Store the library in the `build` directory
             "build/my-languages.so",
-            # Include one or more languages
             [
                 "vendor/tree-sitter-python",
                 "vendor/tree-sitter-javascript",
@@ -27,72 +20,76 @@ class ASTTextSplitter:
         )
 
     def create_documents(self, text: str, language: str) -> list:
-        """
-        将给定文本按函数和类定义进行切分,返回每个函数代码块
-        """
-        # 检查语言是否支持
-        accept_languages = [
-            "python",
-            "javascript",
-            "java",
-            "c",
-            "cpp",
-            "go",
-        ]  # 支持语言列表
+        accept_languages = ["python", "javascript", "java", "c", "cpp", "go"]
         if not any(language == lang for lang in accept_languages):
             raise ValueError(f"Unsupported language: {language}")
+
         parser = Parser()
         LANGUAGE = Language("build/my-languages.so", language)
         parser.set_language(LANGUAGE)
         tree = parser.parse(bytes(text, "utf-8"))
 
-        nodes = list(tree.root_node.children)  # 获取根节点的所有子节点
+        nodes = list(tree.root_node.children)
+        chunks = []
+        current_chunk = []
+        counter = 0
+        node_num = 0
+        final_end_byte = 0
 
+        # 获取节点的起始和结束字节
         def get_node_range(node):
             start_byte = node.start_byte
             end_byte = node.end_byte
             return start_byte, end_byte
 
-        chunks = []
-        current_chunk = []
-        counter = 0
-        first_node = True
+        # 根据counter分割代码块
+        def split_node(counter):
+            if counter >= self.node_number:
+                if self.overlap == 0:
+                    chunks.append("".join(current_chunk))
+                    current_chunk.clear()
+                else:
+                    overlap_chunk = current_chunk[-self.overlap :]
+                    chunks.append("".join(current_chunk))
+                    current_chunk = overlap_chunk
+                return 0
+            return counter
 
-        # 遍历所有节点
+        # 处理文件开头的代码
+        if nodes:
+            start_byte, _ = get_node_range(nodes[0])
+            current_chunk.append(text[:start_byte])
+
         for node in nodes:
             if node.type in ["function_definition", "class_definition"]:
                 start_byte, end_byte = get_node_range(node)
-                if first_node:
-                    first_node = False
-                    current_chunk.append(text[:start_byte])
-                chunk = text[start_byte:end_byte]
-                current_chunk.append(chunk)
-                counter += 1
+                parent_chunk = text[start_byte:end_byte]
 
-                """ # 处理嵌套定义
+                # 处理嵌套定义
                 nested_nodes = list(node.children)
                 for nested_node in nested_nodes:
                     if nested_node.type in ["function_definition", "class_definition"]:
                         nested_start, nested_end = get_node_range(nested_node)
                         nested_chunk = text[nested_start:nested_end]
                         current_chunk.append(nested_chunk)
-                        counter += 1 """
+                        counter += 1
+                        counter = split_node(counter)
 
-                # 每隔 n 个函数或类定义进行一次切割
-                if counter >= self.node_number:
-                    if self.overlap == 0:
-                        chunks.append("".join(current_chunk))
-                        current_chunk = []
-                        counter = 0
-                    else:
-                        overlap_chunk = current_chunk[-self.overlap :]
-                        chunks.append("".join(current_chunk))
-                        current_chunk = overlap_chunk
-                        counter = 0
-        # 处理剩余的代码
-        chunks.append("".join(text[end_byte:]))
+                        # 从父节点中删除嵌套节点
+                        parent_chunk = parent_chunk.replace(nested_chunk, "")
 
-        # 利用正则表达式去除空白行
+                if parent_chunk:
+                    current_chunk.append(parent_chunk)
+                    counter += 1
+                    counter = split_node(counter)
+
+                if node_num == len(nodes) - 1:
+                    final_end_byte = end_byte
+                node_num += 1
+
+        # 处理文件结尾的代码
+        chunks.append("".join(current_chunk) + text[final_end_byte:])
+
         chunks = [re.sub(r"^\n+", "", chunk) for chunk in chunks]
         chunks = [re.sub(r"\n+$", "", chunk) for chunk in chunks]
 
