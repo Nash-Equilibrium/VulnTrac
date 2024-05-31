@@ -78,8 +78,8 @@ def save_to_csv(vulnerabilities, filename):
 def main():
     base_url = 'https://cwe.mitre.org/data/definitions/'  # 基础URL
     vulnerabilities = []
-    start_id = 12  # 起始CWE ID
-    end_id = 12  # 假设有一部分CWE定义，根据实际情况调整
+    start_id = 1  # 起始CWE ID
+    end_id = 1280  # 假设有一部分CWE定义，根据实际情况调整
 
     for cwe_id in range(start_id, end_id + 1):
         url = f'{base_url}{cwe_id}.html'
@@ -87,7 +87,7 @@ def main():
             html_content = fetch_cwe_page(url)  # 获取页面内容
             vulnerabilities.extend(parse_cwe_page(html_content, cwe_id))  # 解析并提取数据
             print(f'成功获取 {url} 的数据')
-            time.sleep(1)  # 添加延迟，避免对服务器造成负担
+            time.sleep(0.1)  # 添加延迟，避免对服务器造成负担
         except requests.HTTPError as e:
             print(f'获取 {url} 失败: {e}')
         except Exception as e:
