@@ -4,8 +4,8 @@
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 如果不存在，则创建vendor和build目录
-mkdir -p "$DIR/vulnCore/vendor"
-mkdir -p "$DIR/vulnCore/build"
+mkdir -p "$DIR/VulnTrac/vendor"
+mkdir -p "$DIR/VulnTrac/build"
 
 # 克隆并构建一个tree-sitter语法的函数
 build_grammar() {
@@ -14,18 +14,18 @@ build_grammar() {
     local lang_name=$3
 
     # 如果目录不存在，则克隆仓库
-    if [ ! -d "$DIR/vulnCore/vendor/$repo_dir" ]; then
-        git clone $repo_url "$DIR/vulnCore/vendor/$repo_dir"
+    if [ ! -d "$DIR/VulnTrac/vendor/$repo_dir" ]; then
+        git clone $repo_url "$DIR/VulnTrac/vendor/$repo_dir"
     fi
 
     # 进入仓库目录
-    cd "$DIR/vulnCore/vendor/$repo_dir"
+    cd "$DIR/VulnTrac/vendor/$repo_dir"
     
     # 编译共享库，检查 src 目录下的文件存在性
     if [ -f "src/scanner.c" ]; then
-        gcc -o "$DIR/vulnCore/build/tree_sitter_${lang_name}.so" -shared -fPIC src/parser.c src/scanner.c
+        gcc -o "$DIR/VulnTrac/build/tree_sitter_${lang_name}.so" -shared -fPIC src/parser.c src/scanner.c
     else
-        gcc -o "$DIR/vulnCore/build/tree_sitter_${lang_name}.so" -shared -fPIC src/parser.c
+        gcc -o "$DIR/VulnTrac/build/tree_sitter_${lang_name}.so" -shared -fPIC src/parser.c
     fi
 }
 
@@ -37,4 +37,4 @@ build_grammar https://github.com/tree-sitter/tree-sitter-go tree-sitter-go go
 build_grammar https://github.com/tree-sitter/tree-sitter-java tree-sitter-java java
 build_grammar https://github.com/tree-sitter/tree-sitter-javascript tree-sitter-javascript javascript
 
-echo "Tree-sitter语法库已编译并放置在/vulnCore/build目录中。"
+echo "Tree-sitter语法库已编译并放置在/VulnTrac/build目录中。"
