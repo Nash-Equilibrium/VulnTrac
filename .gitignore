@@ -32,5 +32,5 @@ bin/
 config.properties
 .gitignore
 __pycache__
-/vulnCore/vendor/
-/vulnCore/build/
+/VulnTrac/vendor/
+/VulnTrac/build/
