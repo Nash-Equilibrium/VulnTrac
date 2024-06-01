@@ -1,4 +1,3 @@
-cwe_vulnerabilities
 名称,定义,常见后果,示范例子,可能的缓解方案
 CWE CATEGORY: DEPRECATED: Location,"This category has been deprecated. It was originally used for organizing the Development View (CWE-699), but it introduced unnecessary complexity and depth to the resulting tree.",无常见后果信息,无示范例子,无可能的缓解方案
 CWE CATEGORY: 7PK - Environment,"This category represents one of the phyla in the Seven Pernicious Kingdoms vulnerability classification. It includes weaknesses that are typically introduced during unexpected environmental conditions. According to the authors of the Seven Pernicious Kingdoms, ""This section includes everything that is outside of the source code but is still critical to the security of the product that is being created. Because the issues covered by this kingdom are not directly related to source code, we separated it from the rest of the kingdoms.""",无常见后果信息,无示范例子,无可能的缓解方案
