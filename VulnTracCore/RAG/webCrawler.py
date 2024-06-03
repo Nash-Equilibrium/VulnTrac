@@ -14,14 +14,14 @@ def parse_cwe_page(html_content, cwe_id):
     soup = BeautifulSoup(html_content, 'html.parser')
     vulnerabilities = []
 
-    # 提取CWE名称（通常在h2标签中）
-    cwe_name = soup.find('h2').get_text(strip=True) if soup.find('h2') else '未找到名称'
+    # 提取CWE名称
+    cwe_name = soup.find('h2').get_text(strip=True) if soup.find('h2') else 'No CWE Name available'
     
-    # 提取CWE定义（通常在class为'indent'的div标签中）
+    # 提取CWE定义
     description_tag = soup.find('div', class_='indent')
-    description = description_tag.get_text(strip=True) if description_tag else '未找到定义'
+    description = description_tag.get_text(strip=True) if description_tag else 'No definition found'
     
-    # 提取扩展描述（假设在class为'extended'的div标签中）
+    # 提取扩展描述
     extended_description_tag = soup.find('div', class_='extended')
     extended_description = extended_description_tag.get_text(strip=True) if extended_description_tag else ''
     
@@ -65,13 +65,13 @@ def parse_cwe_page(html_content, cwe_id):
 def save_to_csv(vulnerabilities, filename):
     with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['名称', '定义', '常见后果', '示范例子', '可能的缓解方案'])
+        writer.writerow(['CWE Number', 'Definition', 'Common sequences', 'Demonstrative examples', 'Possible mitigation'])
 
         for vuln in vulnerabilities:
             cwe_name, full_description, consequences, examples, mitigations = vuln
-            consequences_str = "; ".join([f"Scope: {c['Scope']}, Impact: {c['Impact']}, Likelihood: {c['Likelihood']}" for c in consequences]) if consequences else '无常见后果信息'
-            examples_str = "; ".join(examples) if examples else '无示范例子'
-            mitigations_str = "; ".join(mitigations) if mitigations else '无可能的缓解方案'
+            consequences_str = "; ".join([f"Scope: {c['Scope']}, Impact: {c['Impact']}, Likelihood: {c['Likelihood']}" for c in consequences]) if consequences else 'No common sequence available.'
+            examples_str = "; ".join(examples) if examples else 'No demonstrative example available.'
+            mitigations_str = "; ".join(mitigations) if mitigations else 'No potential mitigation available.'
             writer.writerow([cwe_name, full_description, consequences_str, examples_str, mitigations_str])
 
 # 主函数：运行爬虫
@@ -79,7 +79,7 @@ def main():
     base_url = 'https://cwe.mitre.org/data/definitions/'  # 基础URL
     vulnerabilities = []
     start_id = 1  # 起始CWE ID
-    end_id = 1280  # 假设有一部分CWE定义，根据实际情况调整
+    end_id = 1280  # 终止CWE ID
 
     for cwe_id in range(start_id, end_id + 1):
         url = f'{base_url}{cwe_id}.html'
