@@ -33,7 +33,6 @@ class User(UserMixin, db.Model):
 class Analysis(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_id = db.Column(db.Integer, db.ForeignKey("file.id"))
-    result = db.Column(db.String(2000), nullable=False)
     status = db.Column(db.String(10), nullable=False)  # 0:未处理 1:处理中 2:处理完成
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now)

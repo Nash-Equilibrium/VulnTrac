@@ -1,9 +1,11 @@
-from VulnTracLibrary.codeSplitter import ASTSplitter
+from VulnTracLibrary.astsplitter import ASTTextSplitter
 
-splitter = ASTSplitter()
+splitter = ASTTextSplitter()
 code = """
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 def foo():
     pass
+
 
 class Bar:
     def baz():
@@ -12,8 +14,10 @@ class Bar:
     def qux():
         pass
 
+
 def corge():
     pass
+
 
 class Grault:
     def garply():
@@ -21,8 +25,7 @@ class Grault:
 
     def waldo():
         def nested_func():
-            pass
-"""
+            pass"""
 
 result = []
 

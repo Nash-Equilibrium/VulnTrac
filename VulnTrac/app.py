@@ -310,6 +310,16 @@ def process_file():
                 pdf_path = getReport(filename, text_return)
             if pdf_path is not None:
                 logger.info(f"{time.time()}：文件{file_path}处理成功")
+                # 写入数据库
+                user_id = current_user.get_id()
+                analysis_db = Analysis(
+                    file_name=filename,
+                    user_id=user_id,
+                    status=2,
+                )
+                with app.app_context():
+                    db.session.add(analysis_db)
+                    db.session.commit()
                 response = jsonify(
                     {
                         "message": "处理成功",
