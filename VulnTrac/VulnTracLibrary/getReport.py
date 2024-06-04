@@ -1,29 +1,16 @@
-import json
 import os
 import pdfkit
-import requests
 import markdown
 import time
+import sys
+
+sys.path.append(r"C:\Users\ray\Desktop\ciscn\ciscn")
+from VulnTrac.VulnTracInterface.modelConnect import modelProcess
 
 
 def getReport(filename: str, documents: list) -> str:
-    payload = json.dumps({"documents": documents})
-
-    # 设置请求头
-    headers = {"Content-Type": "application/json"}
-
-    # 发送 POST 请求
-    # 这里需要更改为模型所在服务器的IP地址
-    url = "https://your-server.com/chat"
-    response = requests.request("POST", url, headers=headers, data=payload)
-
-    # 检查响应状态码
-    if response.status_code == 200:
-        # 获取响应内容并解析 JSON
-        response_data = json.loads(response.text)
-        results = response_data["results"]
-    else:
-        print(f"请求失败,状态码: {response.status_code}")
+    # 模型处理
+    results = modelProcess(documents)
 
     # 打包报告
     result_content = "\n".join(results)
@@ -40,7 +27,7 @@ def getReport(filename: str, documents: list) -> str:
         "encoding": "UTF-8",
     }
 
-    #pdfkit支撑应用
+    # pdfkit支撑应用
     path_wkhtmltopdf = r"C:\Users\ray\Desktop\ciscn\wkhtmltopdf\bin\wkhtmltopdf.exe"
     config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
