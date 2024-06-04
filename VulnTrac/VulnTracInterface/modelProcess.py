@@ -1,7 +1,7 @@
 import os
 import json
 
-from flask import Flask
+from flask import Flask, send_file
 from flask import request, render_template
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from abc import ABC
@@ -12,14 +12,17 @@ from langchain.prompts.prompt import PromptTemplate
 from langchain.chains.llm import LLMChain
 from langchain.chains.sequential import SimpleSequentialChain
 
-device = "cuda"  # the device to load the model onto
-
-# system params
+# 保存文件路径
+FILE_PATH = "C:/Users/ray/Desktop/ciscn/ciscn/reports/normal"
+# 设置使用的设备
+device = "cuda"
+# 设置使用的GPU
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-
+# 加载模型
 model = AutoModelForCausalLM.from_pretrained(
     "Qwen/Qwen1.5-7B-Chat", torch_dtype="auto", device_map="auto"
 )
+# 加载分词器
 tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen1.5-7B-Chat")
 
 app = Flask(__name__)
@@ -149,8 +152,11 @@ def chat():
     )
     summarize_chain = LLMChain(llm=llm, prompt=summarize_prompt_template)
     summarize_result = summarize_chain.run("\n".join(str(result) for result in results))
+    """
+    汇总结果处理，生成报告，逻辑需要完善
+    """
 
-    return json.dumps({"results": summarize_result})
+    return send_file(FILE_PATH, as_attachment=True)
 
 
 if __name__ == "__main__":

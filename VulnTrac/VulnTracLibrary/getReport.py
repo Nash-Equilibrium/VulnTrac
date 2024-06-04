@@ -10,10 +10,10 @@ from VulnTrac.VulnTracInterface.modelConnect import modelProcess
 
 def getReport(filename: str, documents: list) -> str:
     # 模型处理
-    results = modelProcess(documents)
-
-    # 打包报告
-    result_content = "\n".join(results)
+    file_path = modelProcess(documents, filename)
+    # 读取结果文件
+    with open(file_path, "r", encoding="utf-8") as f:
+        result_content = f.read()
     # 将 Markdown 转换为 HTML
     html = markdown.markdown(result_content)
 
