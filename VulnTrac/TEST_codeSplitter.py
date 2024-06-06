@@ -1,6 +1,6 @@
-from VulnTracLibrary.astsplitter import ASTTextSplitter
+from VulnTracLibrary.codeSplitter import ASTSplitter
 
-splitter = ASTTextSplitter()
+splitter = ASTSplitter()
 code = """
 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 def foo():

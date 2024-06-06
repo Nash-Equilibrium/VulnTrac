@@ -88,6 +88,7 @@ def root():
 
 
 @app.route("/chat", methods=["POST"])
+
 def chat():
     # 获取数据
     data_seq = request.get_data()
