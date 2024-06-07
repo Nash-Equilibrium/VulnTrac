@@ -2,8 +2,10 @@ import openai
 
 INPUT_FILE_PATH = "/Users/young/Desktop/VulnTrac/VulnTrac/TEST_codeSplitter.py"
 OUTPUT_FILE_PATH = "after.py"
+OPENAI_API_KEY = ""
 
-openai.api_key = ''
+
+openai.api_key = OPENAI_API_KEY
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
@@ -15,23 +17,18 @@ def write_file(file_path, content):
 
 def get_annotated_code(code):
     prompt_template = """
-    You are an expert C/C++ programmer.Please provide concise and precise comments for each line of source code to help the model better understand the source code. Please give the commented code directly\\n
+    Please provide concise and precise comments for each line of source code to help the model better understand the source code. Please give the commented code directly\\n
     ```
     {code}
     ```
     Code after annotation:
     """
-    prompt = prompt_template.format(code=code)
+    prompt_user = prompt_template.format(code=code)
+    prompt_sys = "You are an expert C/C++ programmer."
 
-    response = openai.Completion.create(
-        engine="davinci-codex",
-        prompt=prompt,
-        max_tokens=1500,
-        temperature=0,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0,
-        stop=["```"]
+    response = openai.ChatCompletion.create(model="gpt-3.5-turbo-0301", messages=[
+                {"role": "system", "content":prompt_sys},
+                {"role": "user", "content": prompt_user + code}], temperature=0,max_tokens=1024,top_p=1,frequency_penalty=0.0,presence_penalty=0.0,stop=["\n\n"]
     )
 
     annotated_code = response.choices[0].text.strip()
