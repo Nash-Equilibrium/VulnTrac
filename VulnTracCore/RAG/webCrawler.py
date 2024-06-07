@@ -9,26 +9,26 @@ def fetch_cwe_page(url):
     response.raise_for_status()  # 如果请求失败，则引发HTTPError异常
     return response.text
 
-# 函数：解析CWE页面并提取脆弱性名称、定义、常见后果和示范例子
+# 函数：解析CWE页面并提取脆弱性CWE Number、Definition、Common sequences和Demonstrative examples
 def parse_cwe_page(html_content, cwe_id):
     soup = BeautifulSoup(html_content, 'html.parser')
     vulnerabilities = []
 
-    # 提取CWE名称
-    cwe_name = soup.find('h2').get_text(strip=True) if soup.find('h2') else 'No CWE Name available'
+    # 提取CWECWE Number（通常在h2标签中）
+    cwe_name = soup.find('h2').get_text(strip=True) if soup.find('h2') else '未找到CWE Number'
     
-    # 提取CWE定义
+    # 提取CWEDefinition（通常在class为'indent'的div标签中）
     description_tag = soup.find('div', class_='indent')
-    description = description_tag.get_text(strip=True) if description_tag else 'No definition found'
+    description = description_tag.get_text(strip=True) if description_tag else '未找到Definition'
     
-    # 提取扩展描述
+    # 提取扩展描述（假设在class为'extended'的div标签中）
     extended_description_tag = soup.find('div', class_='extended')
     extended_description = extended_description_tag.get_text(strip=True) if extended_description_tag else ''
     
     # 拼接描述和扩展描述
     full_description = f"{description} {extended_description}".strip()
 
-    # 提取常见后果
+    # 提取Common sequences
     consequences = []
     consequences_section = soup.find('div', id='Common_Consequences')
     if consequences_section:
@@ -41,7 +41,7 @@ def parse_cwe_page(html_content, cwe_id):
                 likelihood = columns[2].get_text(strip=True)
                 consequences.append({'Scope': scope, 'Impact': impact, 'Likelihood': likelihood})
 
-    # 提取示范例子
+    # 提取Demonstrative examples
     examples = []
     example_soup_path = '#oc_'+str(cwe_id)+'_Demonstrative_Examples > div > div'
     examples_path = soup.select(example_soup_path)
@@ -61,17 +61,19 @@ def parse_cwe_page(html_content, cwe_id):
 
     return vulnerabilities
 
+
+# CWE Number,Definition,Common sequences,Demonstrative examples,Possible mitigations
 # 函数：将脆弱性信息保存到CSV文件
 def save_to_csv(vulnerabilities, filename):
     with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['CWE Number', 'Definition', 'Common sequences', 'Demonstrative examples', 'Possible mitigation'])
+        writer.writerow(['CWE Number', 'Definition', 'Common sequences', 'Demonstrative examples', 'Possible mitigations'])
 
         for vuln in vulnerabilities:
             cwe_name, full_description, consequences, examples, mitigations = vuln
-            consequences_str = "; ".join([f"Scope: {c['Scope']}, Impact: {c['Impact']}, Likelihood: {c['Likelihood']}" for c in consequences]) if consequences else 'No common sequence available.'
-            examples_str = "; ".join(examples) if examples else 'No demonstrative example available.'
-            mitigations_str = "; ".join(mitigations) if mitigations else 'No potential mitigation available.'
+            consequences_str = "; ".join([f"Scope: {c['Scope']}, Impact: {c['Impact']}, Likelihood: {c['Likelihood']}" for c in consequences]) if consequences else 'No Common sequences'
+            examples_str = "; ".join(examples) if examples else 'No Demonstrative examples'
+            mitigations_str = "; ".join(mitigations) if mitigations else 'No Possible mitigations'
             writer.writerow([cwe_name, full_description, consequences_str, examples_str, mitigations_str])
 
 # 主函数：运行爬虫
@@ -79,7 +81,7 @@ def main():
     base_url = 'https://cwe.mitre.org/data/definitions/'  # 基础URL
     vulnerabilities = []
     start_id = 1  # 起始CWE ID
-    end_id = 1280  # 终止CWE ID
+    end_id = 1280  # 假设有一部分CWEDefinition，根据实际情况调整
 
     for cwe_id in range(start_id, end_id + 1):
         url = f'{base_url}{cwe_id}.html'
