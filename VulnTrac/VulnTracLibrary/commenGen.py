@@ -3,7 +3,7 @@ import openai
 INPUT_FILE_PATH = "/Users/young/Desktop/VulnTrac/VulnTrac/TEST_codeSplitter.py"
 OUTPUT_FILE_PATH = "after.py"
 
-openai.api_key = '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'
+openai.api_key = ''
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
