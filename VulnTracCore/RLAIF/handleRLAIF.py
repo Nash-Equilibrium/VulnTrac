@@ -2,12 +2,15 @@ import openai
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import json
 
-# 定义CodeQwen模型路径和OpenAI的API密钥
+
 CODEQWEN_MODEL_PATH = "/opt/project/qwen1.5"
-OPENAI_API_KEY = "your_openai_api_key"
+OPENAI_API_KEY = ""
 openai.api_key = OPENAI_API_KEY
 
-# 加载CodeQwen模型和tokenizer
+USER_CODE = ""
+
+
+
 tokenizer = AutoTokenizer.from_pretrained(CODEQWEN_MODEL_PATH)
 model = AutoModelForCausalLM.from_pretrained(CODEQWEN_MODEL_PATH)
 
@@ -61,7 +64,7 @@ def build_preference_dataset(user_code, chosen_report, rejected_report):
     }
     return dataset_entry
 
-# 保存偏好数据集为JSON文件的函数
+
 def save_preference_data_to_json(preference_data, file_path):
     with open(file_path, 'w') as f:
         json.dump(preference_data, f, indent=4)
@@ -90,7 +93,7 @@ def main(user_code):
 
 
 if __name__ == "__main__":
-    user_code = "用户输入的代码示例"
+    user_code = USER_CODE
     preference_data = main(user_code)
     
     # 保存偏好数据集为JSON文件
