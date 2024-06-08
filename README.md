@@ -1,5 +1,5 @@
 `本仓库为2024年全国大学生信息安全竞赛作品赛项目代码仓库（在研）`
-# VulnTrac:一种基于RLHF的代码脆弱性检测系统
+# VulnTrac:大语言模型驱动的代码脆弱性检测系统
 # System Overview
 ![PPT学术图-Latest drawio (2)](https://github.com/Nash-Equilibrium/ciscn/assets/90449797/60e10a32-12b4-4392-a35e-a9cd2d18f127)
 
