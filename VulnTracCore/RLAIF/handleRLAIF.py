@@ -9,8 +9,6 @@ openai.api_key = OPENAI_API_KEY
 
 USER_CODE = ""
 
-
-
 tokenizer = AutoTokenizer.from_pretrained(CODEQWEN_MODEL_PATH)
 model = AutoModelForCausalLM.from_pretrained(CODEQWEN_MODEL_PATH)
 
