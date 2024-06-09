@@ -56,7 +56,7 @@
           </span>
         </label>
         <label class="label-test">
-          <input class="radio-input" type="radio" name="engine" v-model="granularity" value="developer">
+          <input class="radio-input" type="radio" name="engine" v-model="granularity" value="programmer">
           <span class="radio-tile">
             <span class="radio-label">程序员</span>
             <hr style="width: 90%;">
@@ -64,7 +64,7 @@
           </span>
         </label>
         <label class="label-test">
-          <input class="radio-input" type="radio" name="engine" v-model="granularity" value="reviewer">
+          <input class="radio-input" type="radio" name="engine" v-model="granularity" value="auditor">
           <span class="radio-tile">
             <span class="radio-label">审计师</span>
             <hr style="width: 90%;">
@@ -192,7 +192,7 @@ const submitFile = async () => {
     formData.append('codeName', codeName.value);
     formData.append('username', username.value);
     formData.append('granularity', granularity.value);
-
+    
     try {
       const uploadResponse = await axios.post('/v1/upload_file', formData);
       if (uploadResponse.data) {
@@ -221,7 +221,6 @@ const submitText = async () => {
       const uploadResponse = await axios.post('/v1/upload_text', formData);
       if (uploadResponse.data) {
         const processResponse = await axios.post('/v1/process', { filepath: uploadResponse.data });
-        router.push('/pages/history');
         if (processResponse.data.success) {
           router.push('/pages/history');
         }

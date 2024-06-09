@@ -118,19 +118,17 @@ const MiLogin = defineComponent({
                                 if (path) {
                                     if ($tools.isUrl(path)) window.location.href = path
                                     else router.push({ path })
-                                } else router.push({ path: '/' })
+                                } else router.push({ path: '/about' }) // 修改默认跳转路径为 '/about'
                             }
                             if (typeof props.action === 'string') {
                                 api.login = props.action
                                 params.form.validate.url = api.login
                                 await auth.login(params.form.validate).then((res: ResponseData) => {
                                     if (res?.ret?.code === 200) {
-                                        const path = route.query?.redirect as string
-                                        if (path) {
-                                            if ($tools.isUrl(path)) window.location.href = path
-                                            else router.push({ path })
-                                        }
-                                    } else message.error(res?.ret?.message)
+                                        handleLoginSuccess()
+                                    } else {
+                                        message.error(res?.ret?.message)
+                                    }
                                     emit('afterLogin', res)
                                 })
                             } else if (typeof props.action === 'function') {

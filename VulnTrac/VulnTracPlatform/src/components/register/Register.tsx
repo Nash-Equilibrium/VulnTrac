@@ -153,7 +153,7 @@ const MiRegister = defineComponent({
                             }
                             if (typeof props.action === 'string') {
                                 api.register = props.action
-                                // params.form.validate.url = api.login
+                                params.form.validate.url = api.login
                                 await auth
                                     .register(params.form.validate)
                                     .then((res: ResponseData) => {

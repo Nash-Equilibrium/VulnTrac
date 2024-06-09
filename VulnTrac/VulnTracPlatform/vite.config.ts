@@ -50,11 +50,11 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         port: 8080,
-        cors: true,
         proxy: {
             '/v1': {
-                target: 'http://localhost:5800/',
-                changeOrigin: true
+                target: 'http://localhost:5800',
+                changeOrigin: true,
+                secure: false
             },
             '/api/trans': {
                 target: 'http://fanyi-api.baidu.com',

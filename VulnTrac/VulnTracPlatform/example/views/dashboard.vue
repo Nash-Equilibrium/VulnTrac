@@ -2,7 +2,7 @@
   <div class="card">
     <div class="header">个人简介</div>
     <div class="user-info">
-      <img class="user-avatar" src="../assets/img/1.png" alt="User Avatar">
+      <img class="user-avatar" src="../assets/img/user.png" alt="User Avatar">
       <div class="user-details">
         <div>您好，Admin!</div>
         <div>今日晴，20°C - 32°C!</div>

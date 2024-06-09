@@ -13,6 +13,7 @@
         <el-option label="全部" value="all"></el-option>
         <el-option label="已完成" value="completed"></el-option>
         <el-option label="已取消" value="canceled"></el-option>
+        <el-option label="待支付" value="pending"></el-option>
       </el-select>
       <el-select v-model="sortOrder" placeholder="排序方式" class="sort-select">
         <el-option label="上传时间" value="uploadTime"></el-option>
@@ -34,7 +35,6 @@
           <div class="record-stats">
             <el-tag type="info">{{ record.username || '匿名用户' }}</el-tag>
             <el-tag type="info">{{ new Date(record.detectionDate).toLocaleDateString() }}</el-tag>
-            <el-tag type="info">{{ record.type}}</el-tag>
             <el-tag type="danger">高危缺陷数量: {{ record.highRiskDefects }}</el-tag>
             <el-tag type="warning">中危缺陷数量: {{ record.mediumRiskDefects }}</el-tag>
             <el-tag type="info">低危缺陷数量: {{ record.lowRiskDefects }}</el-tag>
@@ -70,42 +70,39 @@ const pageSize = ref(5)  // 设置每页显示5个记录
 const records = ref([
   {
     id: 1,
-    projectName: 'beginnerTest',
-    username: 'beginner',
-    detectionDate: '2024-06-09',
-    highRiskDefects: 0,
-    mediumRiskDefects: 1,
-    lowRiskDefects: 2,
-    pdfUrl: 'https://example.com/report1.pdf',
+    projectName: '项目A',
+    username: '用户1',
+    detectionDate: '2023-06-01T10:00:00Z',
+    highRiskDefects: 5,
+    mediumRiskDefects: 10,
+    lowRiskDefects: 15,
+    pdfUrl: 'file:///C:/Users/user/Desktop/test.pdf',  // 修改为本地文件路径
     status: 'completed',
-    uploadTime: '2023-06-01T10:00:00Z',
-    type: '初学者'
+    uploadTime: '2023-06-01T10:00:00Z'
   },
   {
     id: 2,
-    projectName: 'developerTest',
-    username: 'developer',
-    detectionDate: '2024-06-09',
-    highRiskDefects: 0,
-    mediumRiskDefects: 1,
-    lowRiskDefects: 2,
-    pdfUrl: 'https://example.com/report2.pdf',
-    status: 'completed',
-    uploadTime: '2023-06-02T11:00:00Z',
-    type: '程序员'
+    projectName: '项目B',
+    username: '用户2',
+    detectionDate: '2023-06-02T11:00:00Z',
+    highRiskDefects: 3,
+    mediumRiskDefects: 7,
+    lowRiskDefects: 8,
+    pdfUrl: 'file:///C:/Users/user/Desktop/test.pdf',  // 修改为本地文件路径
+    status: 'canceled',
+    uploadTime: '2023-06-02T11:00:00Z'
   },
   {
     id: 3,
-    projectName: 'reviewerTest',
-    username: 'reviewer',
-    detectionDate: '2024-06-09',
-    highRiskDefects: 0,
-    mediumRiskDefects: 1,
-    lowRiskDefects: 2,
-    pdfUrl: 'https://example.com/report3.pdf',
-    status: 'completed',
-    uploadTime: '2023-06-03T12:00:00Z',
-    type: '审计师'
+    projectName: '项目C',
+    username: '用户3',
+    detectionDate: '2023-06-03T12:00:00Z',
+    highRiskDefects: 6,
+    mediumRiskDefects: 9,
+    lowRiskDefects: 12,
+    pdfUrl: '../../example/assets/test/test.pdf',  // 修改为本地文件路径
+    status: 'pending',
+    uploadTime: '2023-06-03T12:00:00Z'
   }
 ])
 
@@ -273,8 +270,7 @@ const payForReport = (id: number) => {
 
 .record-actions {
   display: flex;
-  flex-direction: row;
-  justify-content: end;
+  flex-direction: column;
   gap: 10px;
 }
 

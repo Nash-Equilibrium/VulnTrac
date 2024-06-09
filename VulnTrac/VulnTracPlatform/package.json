@@ -1,9 +1,8 @@
 {
-  "name": "@miitvip/admin-pro",
+  "name": "vulntrac",
   "private": false,
   "version": "3.1.3",
   "type": "module",
-  "author": "makeit <lirongtong@hotmail.com> (https://admin.makeit.vip)",
   "scripts": {
     "dev": "vite",
     "build": "run-s clean build:css build:esm build:umd",
@@ -55,7 +54,6 @@
     "@ant-design/icons-vue": "^7.0.1",
     "@babel/runtime-corejs3": "^7.23.8",
     "@material/material-color-utilities": "^0.2.7",
-    "@miitvip/admin-pro": "^3.1.5",
     "@opentiny/unplugin-tiny-vue": "^0.0.2",
     "ant-design-vue": "^4.1.2",
     "axios": "^1.6.2",
