@@ -3,7 +3,6 @@
 # System Overview
 ![PPT学术图-Latest drawio (2)](https://github.com/Nash-Equilibrium/ciscn/assets/90449797/60e10a32-12b4-4392-a35e-a9cd2d18f127)
 
-
 # 功能介绍
 ## 1.智能漏洞检测和修复提示
 实现路线：
@@ -30,14 +29,42 @@
 3. 分别对预处理后的文件进行相似度分析，并按相似度降序排列，以达到设置的窗口大小为目标贪心组合代码块。
 
 # 启动方法
-`由于模型的微调尚未完成，故暂未提供模型文件下载。微调完成后会同步至Huggingface与Modelscope。`
-
-​	
-
-1. vendor文件夹需自行clone构建，在tree-sitter官方代码库clone对应语言解析库到vendor文件夹下，网址如下https://tree-sitter.github.io/tree-sitter/
-1. 安装Redis，启动redis-server。
-2. 启动celery ，在另一个终端执行：
+## 1.安装依赖
 ```shell
-$ celery -A app.celery worker --beat --scheduler redis --loglevel=info
+pip install -r requirements.txt
 ```
-3. 开启flask服务，执行app.py即可。
+## 2.下载模型
+安装ModelScope
+```shell
+#安装ModelScope
+pip install modelscope
+```
+利用ModelScope SDK来下载:
+```python
+#SDK模型下载
+from modelscope import snapshot_download
+model_dir = snapshot_download('No1res/CodeQwen_VulnTracFinetuned')
+```
+请注意，将模型保存到本地时，需要调整VulnTracCore中的模型路径。
+
+## 3.安装tree-sitter依赖
+```bash
+bash tree_sitter_setup.sh
+```
+如果出现问题，请确保您的工作路径为`/VulnTrac/VulnTrac`
+
+## 4.配置Platform
+```shell
+cd VulnTrac/VulnTracPlatform
+npm install
+```
+## 5.启动后端
+启动服务之前，请确保已经安装`flask`与`redis`。确认安装后，启动：
+```shell
+celery -A app.celery worker --beat --scheduler redis --loglevel=info
+```
+## 6.启动前端
+```shell
+cd VulnTrac/VulnTracPlatform
+npm run dev
+```
