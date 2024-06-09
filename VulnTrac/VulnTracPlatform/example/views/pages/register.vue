@@ -1,5 +1,5 @@
 <template>
-    <mi-register :action="/v1/register" />
+    <mi-register :action="handleRegister"/>
 </template>
 
 <script setup lang="ts">

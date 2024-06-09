@@ -3,7 +3,7 @@
     <el-card class="box-card">
       <template #header>
         <div class="flex justify-between">
-          <h2 class="header"> 仓库监测数据</h2>
+          <h2 class="header">仓库监测数据</h2>
           <p class="info">提示：您可以在此查看相应数据。</p>
         </div>
       </template>
@@ -57,6 +57,7 @@
             <el-option label="全部" value=""></el-option>
             <el-option label="GitHub" value="github"></el-option>
             <el-option label="GitLab" value="gitlab"></el-option>
+            <el-option label="Gitee" value="gitee"></el-option>
           </el-select>
         </el-col>
         <el-col :span="6">
@@ -69,7 +70,7 @@
           <el-button @click="resetFilters" style="width: 100%;">重置</el-button>
         </el-col>
         <el-col :span="2" class="align-right">
-          <el-button type="primary" @click="() => openAddEditRepo(null)" icon="el-icon-plus"
+          <el-button type="primary" @click="openAddEditRepo(null)" icon="el-icon-plus"
             style="width: 100%;">添加仓库</el-button>
         </el-col>
       </el-row>
@@ -80,9 +81,9 @@
         <el-table-column prop="created_at" label="创建时间" width="180"></el-table-column>
         <el-table-column fixed="right" label="操作" width="230">
           <template #default="scope">
-            <el-button @click="() => openAddEditRepo(scope.row)" size="mini">编辑</el-button>
-            <el-button @click="() => confirmDeleteRepo(scope.row.id)" type="danger" size="mini">删除</el-button>
-            <el-button @click="() => openRepoDetail(scope.row)" type="info" size="mini">详情</el-button>
+            <el-button @click="openAddEditRepo(scope.row)" size="small">编辑</el-button>
+            <el-button @click="confirmDeleteRepo(scope.row.id)" type="danger" size="small">删除</el-button>
+            <el-button @click="openRepoDetail(scope.row)" type="info" size="small">详情</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -108,13 +109,14 @@
           <el-select v-model="form.type">
             <el-option label="GitHub" value="github"></el-option>
             <el-option label="GitLab" value="gitlab"></el-option>
+            <el-option label="Gitee" value="gitee"></el-option>
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="closeAddEditRepo">取消</el-button>
-          <el-button type="primary" @click="handleSaveRepo">保存</el-button>
+          <el-button type="primary" @click="saveRepo">保存</el-button>
         </div>
       </template>
     </el-dialog>
@@ -143,7 +145,6 @@ import { ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { ElMessageBox, ElMessage } from 'element-plus';
 
-
 interface Repo {
   id?: number;
   name: string;
@@ -157,10 +158,9 @@ interface Repo {
 // 展示
 const items = ref([
   { id: 1, description: 'VulnTrac监测的仓库总数', title: '监测中仓库', value: 7, unit: '个' },
-  { id: 2, description: 'VulnTrac已经执行的监测次数', title: '监测总次数', value: 41, unit: "次" },
+  { id: 2, description: 'VulnTrac已经执行的监测次数', title: '监测总次数', value: 41, unit: '次' },
   { id: 3, description: 'VulnTrac发现的缺陷数', title: '发现缺陷数', value: 17, unit: '个' },
-  // { id: 4, description: '监测中', title: '', value: 2 },
-])
+]);
 
 const store = useStore();
 const searchQuery = ref('');
@@ -171,8 +171,8 @@ const showRepoDetail = ref(false);
 const selectedRepo = ref<Repo | null>(null);
 const pageSize = ref(5);
 const currentPage = ref(1);
-
-const form = ref<Repo>({ name: '', description: '', url: '', type: '', created_at: '', status: '' });
+const formRef = ref<any>(null); // Ensure ref is declared here
+const form = ref<Repo>({ name: '', description: '', url: '', type: '' });
 
 const rules = {
   name: [{ required: true, message: '请输入名称', trigger: 'blur' }],
@@ -181,7 +181,13 @@ const rules = {
   type: [{ required: true, message: '请选择类型', trigger: 'change' }],
 };
 
-const repos = computed(() => store.state.repos || []);
+const repos = computed(() => store.state.repos || [
+  { id: 1, name: 'Repo1', description: '这是第一个仓库', url: 'https://github.com/repo1', type: 'github', status: 'active', created_at: '2023-01-01' },
+  { id: 2, name: 'Repo2', description: '这是第二个仓库', url: 'https://gitlab.com/repo2', type: 'gitlab', status: 'active', created_at: '2023-02-01' },
+  { id: 3, name: 'Repo3', description: '这是第三个仓库', url: 'https://gitee.com/repo3', type: 'gitee', status: 'inactive', created_at: '2023-03-01' },
+  { id: 4, name: 'FakeRepo', description: '这是一个伪造的仓库', url: 'https://example.com/fakerepo', type: 'github', status: 'active', created_at: '2023-04-01' },
+  { id: 5, name: 'TestRepo', description: '这是一个测试仓库', url: 'https://example.com/testrepo', type: 'gitlab', status: 'active', created_at: '2023-05-01' }
+]);
 const reposTotal = computed(() => repos.value.length);
 
 const filteredRepos = computed(() => {
@@ -216,10 +222,11 @@ const resetFilters = () => {
 const openAddEditRepo = (repo: Repo | null = null) => {
   if (repo) {
     form.value = { ...repo };
+    selectedRepo.value = repo;
   } else {
-    form.value = { name: '', description: '', url: '', type: '', created_at: '', status: '' };
+    form.value = { name: '', description: '', url: '', type: '' };
+    selectedRepo.value = null;
   }
-  selectedRepo.value = repo;
   showAddEditRepo.value = true;
 };
 
@@ -227,19 +234,27 @@ const closeAddEditRepo = () => {
   showAddEditRepo.value = false;
 };
 
-const handleSaveRepo = () => {
-  const formRef = ref<any>();
+const saveRepo = () => {
   formRef.value.validate((valid: boolean) => {
     if (valid) {
+      const formattedDate = new Date().toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
       if (selectedRepo.value) {
-        store.commit('updateRepo', form.value);
+        store.commit('updateRepo', { ...form.value, created_at: formattedDate });
       } else {
         form.value.id = Date.now(); // 简单的ID生成策略
         form.value.status = 'active';
-        form.value.created_at = new Date().toISOString();
+        form.value.created_at = formattedDate;
         store.commit('addRepo', form.value);
       }
       closeAddEditRepo();
+      ElMessage({
+        type: 'success',
+        message: selectedRepo.value ? '仓库更新成功!' : '仓库添加成功!',
+      });
     } else {
       console.log('验证失败');
       return false;
@@ -317,7 +332,7 @@ const lineOptions = ref({
   yAxis: {
     name: '检测次数'
   }
-})
+});
 const pieOptions = ref({
   type: 'pie',
   legend: {
@@ -340,9 +355,10 @@ const pieOptions = ref({
     { value: 20, name: '低风险' },
     { value: 18, name: '无风险' }
   ]
-})
+});
 
-store.dispatch('fetchRepos');
+// If using Vuex store, uncomment the following line
+// store.dispatch('fetchRepos');
 
 </script>
 

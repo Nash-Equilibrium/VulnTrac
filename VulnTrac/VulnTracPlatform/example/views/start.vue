@@ -17,7 +17,7 @@
         <div class="notiglow"></div>
         <div class="notiborderglow"></div>
         <div class="notititle">提示:</div>
-        <div class="notibody">该系统支持检测以下代码：</div>
+        <div class="notibody">该系统目前支持检测以下代码：<br> C、C++、java、python、go以及javaScript</div>
         <div class="notibody" style="justify-content: end;">
           <button class="confirmA" @click="dialogVisible = false">
             我已知晓
@@ -52,23 +52,23 @@
           <span class="radio-tile">
             <span class="radio-label">初学者</span>
             <hr style="width: 90%;">
-            <span class="radio-label">更适合中国宝宝的体质</span>
+            <span class="radio-label">1.更简单的讲解<br>2.更丰富的介绍</span>
           </span>
         </label>
         <label class="label-test">
-          <input class="radio-input" type="radio" name="engine" v-model="granularity" value="programmer">
+          <input class="radio-input" type="radio" name="engine" v-model="granularity" value="developer">
           <span class="radio-tile">
             <span class="radio-label">程序员</span>
             <hr style="width: 90%;">
-            <span class="radio-label">更适合中国宝宝的体质</span>
+            <span class="radio-label">1.更详细的技术分析<br>2.更专业的检测分析</span>
           </span>
         </label>
         <label class="label-test">
-          <input class="radio-input" type="radio" name="engine" v-model="granularity" value="auditor">
+          <input class="radio-input" type="radio" name="engine" v-model="granularity" value="reviewer">
           <span class="radio-tile">
             <span class="radio-label">审计师</span>
             <hr style="width: 90%;">
-            <span class="radio-label">更适合中国宝宝的体质</span>
+            <span class="radio-label">1.更深入的技术细节<br>2.更精简的检测分析</span>
           </span>
         </label>
       </div>
@@ -115,6 +115,10 @@
             <p style="margin-top: 5px;margin-bottom: 10px">点击或者拖拽上传文件</p>
           </label>
           <input class="input" name="text" id="file" type="file" @change="handleFileUpload" />
+          <div class="uploaded-file" v-if="file">
+            <p>文件名: {{ file.name }}</p>
+            <p>文件大小: {{ (file.size / 1024).toFixed(2) }} KB</p>
+          </div>
           <div class="buttonholder">
             <button class="confirmB" @click="submitFile" style="background-color:#00a8ff;">
               <div class="svg-wrapper-1">
@@ -152,98 +156,82 @@
         </template>
       </div>
     </div>
-    <div v-if="uploadProgress > 0" style="width: 94%; margin: 10px;">
-      <el-progress :percentage="uploadProgress"></el-progress>
-    </div>
     <div style="height: 10px"></div>
     <hr style="width: 95%">
     <div style="height: 10px"></div>
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      dialogVisible: false,
-      codeType: '',
-      codeName: '',
-      username: '',
-      granularity: '',
-      uploadMethod: 'file',
-      codeText: '',
-      uploadProgress: 0,
-    };
-  },
-  methods: {
-    handleFileUpload(event) {
-      this.file = event.target.files[0];
-    },
-    async submitFile() {
-      if (this.file) {
-        const formData = new FormData();
-        formData.append('file', this.file);
-        formData.append('codeType', this.codeType);
-        formData.append('codeName', this.codeName);
-        formData.append('username', this.username);
-        formData.append('granularity', this.granularity);
-        
-        try {
-          const uploadResponse = await this.uploadFile(formData);
-          if (uploadResponse.filepath) {
-            const processResponse = await this.processFile(uploadResponse.filepath);
-            if (processResponse.success) {
-              this.$router.push('/pages/history');
-            }
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      }
-    },
-    async submitText() {
-      if (this.codeText) {
-        const formData = {
-          codeText: this.codeText,
-          codeType: this.codeType,
-          codeName: this.codeName,
-          username: this.username,
-          granularity: this.granularity,
-        };
+<script setup lang="ts">
+import { ref } from 'vue';
+import axios from 'axios';
+import { useRouter } from 'vue-router';
 
-        try {
-          const uploadResponse = await this.uploadText(formData);
-          if (uploadResponse.filepath) {
-            const processResponse = await this.processFile(uploadResponse.filepath);
-            if (processResponse.success) {
-              this.$router.push('/pages/history');
-            }
-          }
-        } catch (error) {
-          console.error(error);
+const dialogVisible = ref(false);
+const codeType = ref('');
+const codeName = ref('');
+const username = ref('');
+const granularity = ref('');
+const uploadMethod = ref('file');
+const codeText = ref('');
+const file = ref<File | null>(null);
+const router = useRouter();
+
+const handleFileUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files[0]) {
+    file.value = target.files[0];
+  }
+};
+
+const submitFile = async () => {
+  if (file.value) {
+    const formData = new FormData();
+    formData.append('file', file.value);
+    formData.append('codeType', codeType.value);
+    formData.append('codeName', codeName.value);
+    formData.append('username', username.value);
+    formData.append('granularity', granularity.value);
+
+    try {
+      const uploadResponse = await axios.post('/v1/upload_file', formData);
+      if (uploadResponse.data) {
+        const processResponse = await axios.post('/v1/process', { filepath: uploadResponse.data });
+        if (processResponse.data.success) {
+          router.push('/pages/history');
         }
       }
-    },
-    async uploadFile(formData) {
-      return await this.$axios.post('/v1/uploadFile', formData, {
-        onUploadProgress: progressEvent => {
-          this.uploadProgress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+};
+
+const submitText = async () => {
+  if (codeText.value) {
+    const formData = {
+      codeText: codeText.value,
+      codeType: codeType.value,
+      codeName: codeName.value,
+      username: username.value,
+      granularity: granularity.value,
+    };
+
+    try {
+      const uploadResponse = await axios.post('/v1/upload_text', formData);
+      if (uploadResponse.data) {
+        const processResponse = await axios.post('/v1/process', { filepath: uploadResponse.data });
+        router.push('/pages/history');
+        if (processResponse.data.success) {
+          router.push('/pages/history');
         }
-      }).then(response => response.data);
-    },
-    async uploadText(formData) {
-      return await this.$axios.post('/v1/uploadText', formData).then(response => response.data);
-    },
-    async processFile(filepath) {
-      return await this.$axios.post('/v1/process', { filepath }).then(response => response.data);
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 };
 </script>
-
-<script lang="ts" setup>
-</script>
-
 
 <style scoped>
 .card {
@@ -752,6 +740,7 @@ export default {
   padding: 8px 14px;
   border: 2px solid #12CBC4;
   background-color: #2C3A47;
+  color: white;
   margin-bottom: -8px;
 }
 

@@ -123,52 +123,28 @@ const options = reactive({
 const dwellPosition = window.innerWidth
 const cardInfo = [
   {
-    bgColor: '255,188,75',
-    imgUrl: 'example/assets/img/8.png',
-    tips: 'Product Design',
-    contnetText: 'Finding your T-Shape as a Specialist Designer'
-  },
-  {
-    bgColor: '255,188,75',
-    imgUrl: 'example/assets/img/7.png',
-    tips: 'Product Design',
-    contnetText: 'Designing for the World: An Introduction to Localization'
-  },
-  {
-    bgColor: '255,208,213',
-    imgUrl: 'example/assets/img/6.png',
-    tips: 'Behind The Scenes',
-    contnetText: 'From Web Page to Web Player: How Spotify Designed a New Homepage Experience'
-  },
-  {
-    bgColor: '255,188,75',
-    imgUrl: 'example/assets/img/5.png',
-    tips: 'Design Systems',
-    contnetText: 'Can I get an Encore? Spotify’s Design System, Three Years On'
-  },
-  {
     bgColor: '164,201,216',
     imgUrl: 'example/assets/img/4.png',
-    tips: 'Methods',
-    contnetText: 'Navigating the Discovery Phase'
+    tips: '基于仓库实时监测的全生命周期安全解决方案',
+    contnetText: '帮助开发人员自动化持续监控代码库的安全状况，及时发现并弥补安全隐患，从而显著提高代码的可靠性和安全性'
   },
   {
     bgColor: '255,208,213',
     imgUrl: 'example/assets/img/3.png',
-    tips: 'BEHIND THE SCENES',
-    contnetText: 'Making Moves: Designing Motion for 2022 Wrapped'
+    tips: '实现项目级别脆弱性检测的实用工具',
+    contnetText: '本产品能够从整体上评估软件系统的安全性，提供了一种全新的安全评估视角，帮助用户全面了解和管理项目安全风险'
   },
   {
     bgColor: '255,208,213',
     imgUrl: 'example/assets/img/2.png',
-    tips: 'Q+A',
-    contnetText: 'Ask Spotify Design 07'
+    tips: '更全面、更强大的代码脆弱性分析工具',
+    contnetText: '利用大模型对代码进行更全面的分析，准确识别出潜在的脆弱性，并给出具体修复建议'
   },
   {
     bgColor: '255,208,213',
     imgUrl: 'example/assets/img/1.png',
     tips: '为什么选择 VulnTrac ?',
-    contnetText: 'Growing, Scaling, and Tuning: Meet Spotify’s Global Head of Design Ops'
+    contnetText: ''
   }
 ]
 
@@ -286,6 +262,7 @@ onMounted(() => {
   }))
 })
 </script>
+
 <style lang="less" scoped>
 @charset "UTF-8";
 
@@ -426,7 +403,7 @@ onMounted(() => {
 }
 
 .describe .contnet-text {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-family: CircularSpotifyTxTBold;
   color: white;
   cursor: pointer;

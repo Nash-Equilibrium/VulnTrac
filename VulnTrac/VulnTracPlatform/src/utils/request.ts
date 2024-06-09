@@ -1,11 +1,11 @@
+import axios, { AxiosRequestConfig, AxiosResponse, Method } from 'axios'
 import type { App } from 'vue'
 import { $g } from './global'
 import { $cookie } from './cookie'
 import { $storage } from './storage'
-import axios, { AxiosRequestConfig, AxiosResponse, Method } from 'axios'
 import type { RequestConfig } from './types'
 
-axios.defaults.baseURL = '/'
+axios.defaults.baseURL = 'http://localhost:5800' // 设置正确的 baseURL
 axios.defaults.withCredentials = true
 axios.defaults.headers.common['Content-Type'] = 'application/json;charset=UTF-8;'
 
@@ -104,19 +104,6 @@ class MiRequest {
     }
 }
 
-/**
- * 封装请求响应类 ( `axios` )
- *  - 包含 `get, post, put, delete` 等10种请求方法.
- *  - 显式外放 `get / post / put / delete` 请求方法
- *
- * e.g.
- * ```
- * this.$request.get('/v1/login', {
- *     username: 'makeit.vip',
- *     password: '123456'
- * })
- * ```
- */
 export const $request = new MiRequest()
 export default {
     install(app: App) {
