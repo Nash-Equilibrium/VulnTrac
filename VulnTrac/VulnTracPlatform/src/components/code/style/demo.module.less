@@ -1,0 +1,83 @@
+@import '../../theme/style/variables.module.less';
+
+.container {
+    .properties(margin-top);
+    .properties(margin-bottom);
+    position: relative;
+
+    .inner {
+        width: 100%;
+        height: 100%;
+        border: .0625rem solid var(--mi-code-demo-border);
+        .radius(8);
+        .properties(padding, 24);
+        position: relative;
+        .transition();
+
+        @media only screen and (max-width: @mi-md) {
+            .properties(padding, 16);
+        }
+
+        @media only screen and (max-width: @mi-sm) {
+            .properties(padding);
+        }
+
+        .result {
+            .radius(8);
+            overflow: hidden;
+        }
+        
+        .icons {
+            .flex();
+
+            @media only screen and (max-width: @mi-sm) {
+                .properties(margin-bottom, 16);
+            }
+
+            :global {
+                .anticon {
+                    .font-size(18);
+                    cursor: pointer;
+                }
+
+                .anticon + .anticon {
+                    .properties(margin-left, 16);
+                }
+            }
+        }
+
+        .code {
+            position: relative;
+            .transition();
+            .properties(margin-top, 24);
+
+            @media only screen and (max-width: @mi-sm) {
+                margin-top: 0;
+            }
+        }
+
+        .info {
+            :global {
+                .ant-divider-inner-text {
+                    h1,
+                    h2,
+                    h3,
+                    h4, 
+                    h5,
+                    h6 {
+                        margin: 0;
+                        .font-size(16, bold);
+                    }
+                }
+            }
+        }
+
+        .margin-top {
+            .properties(margin-top, 24);
+        }
+    }
+}
+
+:export {
+    --code-demo-border: var(--mi-primary);
+}

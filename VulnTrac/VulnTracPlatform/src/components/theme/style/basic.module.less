@@ -1,0 +1,102 @@
+@import './variables.module.less';
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    .hide-scrollbar();
+}
+
+html {
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.5;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    .font-size();
+    line-height: 1.75;
+    color: var(--mi-on-background);
+    background: var(--mi-background);
+    .letter-spacing();
+    .scrollbar();
+    font-family: @mi-font-basic;
+    position: relative;
+
+    ::selection {
+        color: var(--mi-on-primary);
+        background-color: var(--mi-primary);
+        background-image: linear-gradient(127deg, var(--mi-primary) 0, var(--mi-secondary) 52%, var(--mi-tertiary) 100%);
+    }
+
+    ::-moz-selection {
+        color: var(--mi-on-primary);
+        background-color: var(--mi-primary);
+        background-image: linear-gradient(127deg, var(--mi-primary) 0, var(--mi-secondary) 52%, var(--mi-tertiary) 100%);
+    }
+}
+
+ol, ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+img {
+    width: 100%;
+    height: 100%;
+    image-rendering: -o-crisp-edges;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    object-fit: cover;
+}
+
+a {
+    color: var(--mi-primary);
+    background: transparent;
+    text-decoration: none;
+    outline: none;
+    cursor: pointer;
+    .transition(color);
+    text-decoration-skip: objects;
+
+    &:active,
+    &:hover,
+    &:visited,
+    &:link {
+        color: var(--mi-primary);
+    }
+}
+
+input {
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+    }
+}
+
+:global {
+    .mi-table {
+        .ant-table-content {
+            &::-webkit-scrollbar {
+                .properties(height, 4);
+            }
+        
+            &::-webkit-scrollbar-thumb {
+                .radius(2);
+                background: var(--mi-primary);
+            }
+        }
+    }
+
+    div[id^="allow_copycopy-"] {
+        display: none;
+    }
+}
+
+*, :after, :before, [class*=mi-] {
+    box-sizing: border-box;
+}

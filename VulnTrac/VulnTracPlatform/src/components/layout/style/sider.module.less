@@ -1,0 +1,22 @@
+@import '../../theme/style/variables.module.less';
+
+.container {
+    .transition();
+    .properties(width, @mi-sider-width);
+    .background();
+    position: absolute;
+    left: 0;
+    top: 0;
+    overflow: hidden;
+    z-index: @mi-zindex + 100;
+    .properties(margin-top, @mi-margin);
+    .properties(margin-bottom, @mi-margin);
+
+    &.collapsed {
+        .properties(width, @mi-sider-width-mini);
+    }
+
+    &:global(>.ant-menu) {
+        max-height: calc(100vh - @mi-sider-logo-container - @mi-margin);
+    }
+}

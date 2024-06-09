@@ -1,0 +1,114 @@
+@import '../../theme/style/variables.module.less';
+
+.container {
+    .flex(center, center, column);
+    width: 100%;
+    .properties(height, @mi-sider-logo-container);
+    position: relative;
+}
+
+.inner {
+    .transition();
+    .flex();
+    .ellipsis();
+    .properties(width, @mi-sider-width);
+    color: var(--mi-layout-sider-logo-text);
+    position: relative;
+}
+
+.action {
+    .flex(center, space-between);
+    .font-size(16);
+    color: var(--mi-layout-sider-collapsed);
+    width: 100%;
+    .properties(padding-left, @mi-padding);
+    .properties(padding-right, @mi-padding);
+    .properties(padding-bottom);
+    position: absolute;
+    top: 0;
+}
+
+.trigger {
+    .properties(width, 40);
+    .properties(height, 40);
+    .flex();
+    .circle();
+    background: var(--mi-layout-sider-logo-trigger);
+    cursor: pointer;
+    position: relative;
+}
+
+.logo {
+    .properties(width, @mi-sider-logo-large);
+    .properties(height, @mi-sider-logo-large);
+    .properties(margin-bottom);
+    .transition();
+    overflow: hidden;
+}
+
+.circle {
+    .logo {
+        .circle();
+        border: .125rem solid var(--mi-layout-sider-logo-border);
+
+        > img {
+            .circle();
+            transform: scale(1.1);
+        }
+
+        &:hover {
+            transform: rotate(360deg);
+        }
+    }
+}
+
+.site {
+    .flex(center, center, column);
+    .ellipsis();
+
+    &-title {
+        .transition();
+        .flex();
+        .ellipsis();
+        width: auto;
+        margin: 0;
+        .font-size(20, bold);
+        .properties(margin-left, 12);
+        font-family: @mi-font-code;
+        .gradient-text();
+        zoom: 1;
+    }
+}
+
+.collapsed {
+    justify-content: flex-start;
+
+    .action {
+        .flex(center, center, column);
+        position: relative;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    .trigger + .trigger {
+        .properties(margin-top);
+    }
+
+    .inner {
+        width: 100%;
+    }
+
+    .logo {
+        .properties(width, @mi-sider-logo-small);
+        .properties(height, @mi-sider-logo-small);
+        .properties(margin-top);
+    }
+}
+
+:export {
+    --layout-sider-logo-text: var(--mi-primary);
+    --layout-sider-logo-border: var(--mi-primary);
+    --layout-sider-logo-collapsed: var(--mi-on-background);
+    --layout-sider-logo-notice: var(--mi-on-background);
+    --layout-sider-logo-trigger: rgba(var(--mi-rgb-on-surface), .1);
+}

@@ -1,0 +1,38 @@
+@import '../../theme/style/variables.module.less';
+
+.container {
+    .transition();
+    background-color: var(--mi-menu-item-background-default);
+
+    &.active {
+        .gradient-hint(var(--mi-menu-item-background-active-start), var(--mi-menu-item-background-active-hint), var(--mi-menu-item-background-active-stop));
+    }
+
+    &.collapsed {
+        .flex();
+    }
+
+    &:hover,
+    &:visited,
+    &:active,
+    &:link {
+        background-color: transparent !important;
+    }
+}
+
+.link {
+    .properties(margin-top);
+    color: var(--mi-menu-item-text);
+
+    > a {
+        .flex();
+    }
+}
+
+:export {
+    --menu-item-text: var(--mi-on-background);
+    --menu-item-background-default: transparent;
+    --menu-item-background-active-start: var(--mi-primary);
+    --menu-item-background-active-hint: var(--mi-secondary);
+    --menu-item-background-active-stop: var(--mi-tertiary);
+}

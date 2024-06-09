@@ -1,0 +1,95 @@
+@import '../../theme/style/variables.module.less';
+
+.container {
+    .transition();
+    .flex();
+    .properties(height, @mi-header-height);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: @mi-zindex + 1000;
+}
+
+.inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    .flex();
+}
+
+.trigger {
+    .flex();
+}
+
+.left,
+.right {
+    position: absolute;
+    top: 0;
+    width: auto;
+    z-index: 10;
+}
+
+.left {
+    .flex();
+    left: 0;
+
+    @media only screen and (max-width: @mi-sm) {
+        .properties(left, 16);
+        top: 50%;
+        transform: translateY(-50%);
+    }
+}
+
+.right {
+    .properties(right, 16);
+    top: 50%;
+    transform: translateY(-50%);
+    .flex();
+}
+
+.trigger {
+    .transition();
+    position: relative;
+    cursor: pointer;
+
+    .anticon {
+        .properties(width, 32);
+        .properties(height, 32);
+        .flex();
+        .circle();
+    }
+}
+
+.palette,
+.screenfull,
+.drawer {
+    .properties(width, 32);
+    .properties(height, 32);
+    .flex();
+    .properties(margin-left, 16);
+
+    :global(.anticon) {
+        .font-size(20);
+        cursor: pointer;
+    }
+}
+
+.user {
+    .flex();
+    .properties(margin-left, 16);
+    cursor: pointer;
+}
+
+.drawer {
+    margin-left: 0;
+    .flex();
+}
+
+.coffee {
+    > img {
+        .properties(width, 372);
+        max-width: 100%;
+        .properties(margin-top, 16);
+    }
+}

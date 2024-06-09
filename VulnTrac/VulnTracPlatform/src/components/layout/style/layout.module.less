@@ -1,0 +1,43 @@
+@import '../../theme/style/variables.module.less';
+
+.container {
+    display: flex;
+    flex: auto;
+    min-height: auto;
+    flex-direction: column;
+    position: relative;
+}
+
+.content {
+    width: 100%;
+    .transition();
+    .hide-scrollbar();
+    .properties(padding-left, @mi-margin);
+    overflow: hidden;
+    position: relative;
+}
+
+.inner {
+    width: calc(100% - 1.25rem);
+    height: calc(100vh - 2.5rem);
+    .properties(margin-top, @mi-margin);
+    .properties(margin-bottom, @mi-margin);
+    .properties(margin-right, @mi-margin);
+    .radius(16);
+    .hide-scrollbar();
+    background: var(--mi-layout-background);
+    overflow: hidden;
+    position: relative;
+}
+
+.hasSider {
+    .properties(padding-left, @mi-sider-width);
+
+    &.collapsed {
+        .properties(padding-left, @mi-sider-width-mini);
+    }
+}
+
+:export {
+    --layout-background: rgba(var(--mi-rgb-surface-variant), .6);
+}

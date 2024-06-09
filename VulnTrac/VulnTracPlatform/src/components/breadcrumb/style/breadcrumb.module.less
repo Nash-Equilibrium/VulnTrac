@@ -1,0 +1,58 @@
+@import '../../theme/style/variables.module.less';
+
+.container {
+    .properties(padding, 16);
+    .flex(center, flex-start);
+    flex-wrap: nowrap;
+    .transition();
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: @mi-zindex + 1000;
+}
+
+.separator {
+    .properties(margin-right);
+    .properties(margin-left);
+    color: var(--mi-breadcrumbs-separator);
+}
+
+.item {
+    color: var(--mi-breadcrumbs-text-active);
+    .flex(center, flex-start);
+    .ellipsis();
+    width: auto;
+
+    span {
+        a {
+            .flex();
+
+            :global(.anticon) {
+                .properties(margin-right, 6);
+
+                &-home {
+                    .properties(margin-top, -2);
+                }
+            }
+        }
+    }
+
+    &:last-child {
+        span {
+            a {
+                cursor: default;
+                color: var(--mi-breadcrumbs-text-default);
+            }
+
+            &:last-child {
+                display: none;
+            }
+        }
+    }
+}
+
+:export {
+    --breadcrumb-text-default: var(--mi-on-surface-variant);
+    --breadcrumb-text-active: var(--mi-primary);
+    --breadcrumb-separator: var(--mi-on-surface-variant);
+}
