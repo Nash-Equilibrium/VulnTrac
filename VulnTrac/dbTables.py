@@ -1,7 +1,6 @@
 from flask_login import UserMixin
 from init import db
 from datetime import datetime
-from flask_login import LoginManager
 
 
 def get_user(user_id):
@@ -22,7 +21,7 @@ class File(db.Model):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False)
-    password = db.Column(db.String(20), nullable=False)
+    password = db.Column(db.String(1000), nullable=False)
     email = db.Column(db.String(50), nullable=False)
     role = db.Column(db.String(10), nullable=False)  # 0:普通用户 1:管理员
     created_at = db.Column(db.DateTime, default=datetime.now)
@@ -33,13 +32,23 @@ class User(UserMixin, db.Model):
 class Analysis(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     file_id = db.Column(db.Integer, db.ForeignKey("file.id"))
-    status = db.Column(db.String(10), nullable=False)  # 0:未处理 1:处理中 2:处理完成
+    pdf_path = db.Column(db.String(100), nullable=False)
+    status = db.Column(db.String(10), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now)
+    uploaded_at = db.Column(db.DateTime, default=datetime.now)
 
 
-# History表
-class History(db.Model):
+# AnalysisHistory表
+class AnalysisHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    file_id = db.Column(db.Integer, db.ForeignKey("file.id"))
+    analysis_id = db.Column(db.Integer, db.ForeignKey("analysis.id"))
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+
+# RepoHistory表
+class RepoHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     file_id = db.Column(db.Integer, db.ForeignKey("file.id"))

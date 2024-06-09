@@ -8,7 +8,7 @@ FLASK_URL = "http://<flask_server_ip>:<flask_server_port>"
 SAVE_PATH = r"C:\Users\ray\Desktop\ciscn\ciscn\reports\Markdown"
 
 
-def modelProcess(split_documents: list, filename: str):
+def modelProcess(split_documents: list, filename: str, degree: int) -> str:
     # 转换数据为 JSON 格式
     json_data = json.dumps({"split_documents": split_documents})
 

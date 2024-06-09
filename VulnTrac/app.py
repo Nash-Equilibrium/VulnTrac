@@ -6,11 +6,11 @@ from VulnTracLibrary.sendMail import mailsend
 from VulnTracLibrary.getReport import getReport
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_cors import CORS, cross_origin
 from init import db, app
 from loguru import logger
 from flask_login import (
     LoginManager,
-    UserMixin,
     login_user,
     login_required,
     logout_user,
@@ -24,13 +24,14 @@ import atexit
 import random
 import re
 
+DETAILED = 0
+SIMPLE = 1
 
 # 日志配置
 logger.add("app.log", rotation="50MB", retention="10 days", level="INFO", colorize=True)
 
 
-from dbTables import User, File, Repo, Analysis, History, get_user
-
+from dbTables import User, File, Repo, Analysis, AnalysisHistory, RepoHistory, get_user
 
 # 定时执行监测任务
 from celery.schedules import crontab
@@ -43,6 +44,9 @@ celery.conf.update(
     broker_url=app.config["CELERY_BROKER_URL"],
     result_backend=app.config["CELERY_RESULT_BACKEND"],
 )
+
+# cors配置
+CORS(app, supports_credentials=True)
 
 # 数据库初始化
 with app.app_context():
@@ -69,83 +73,103 @@ def load_user(user_id):
     return get_user(user_id)
 
 
-# 主页
-@app.route("/")
-def index():
-    return "Hello World!"
-
-
 # 注册
-@app.route("/api/v1/register", methods=["GET", "POST"])
+@app.route("/v1/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         # 合法性检查放在前端
         data = request.get_json()
         username = data.get("username", "")
         password = data.get("password", "")
+        password = generate_password_hash(password)
         email = data.get("email", "")
-        role = 0
+        # 检查邮箱是否已经注册
+        user = User.query.filter_by(email=email).first()
+        if user:
+            return jsonify(
+                {
+                    "ret": {
+                        "message": "Email already registered",
+                        "code": "400",
+                    }
+                }
+            )
+        role = "0"
         new_user = User(username=username, password=password, email=email, role=role)
         db.session.add(new_user)
         db.session.commit()
         return jsonify(
-            {"message": "Registration successful", "status": "success", "code": 0}
+            {
+                "ret": {
+                    "message": "Register successful",
+                    "code": "200",
+                }
+            }
         )
-    return jsonify({"message": "Method not allowed", "status": "error", "code": -1})
+    return jsonify(
+        {
+            "ret": {
+                "message": "Method not allowed",
+                "code": "405",
+            }
+        }
+    )
 
 
 # 登录
-@app.route("/api/v1/login", methods=["GET", "POST"])
+@app.route("/v1/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         data = request.get_json()
         username = data.get("username", "")
         password = data.get("password", "")
         user = User.query.filter_by(username=username).first()
-        if user and user.password == password:
+        if user and check_password_hash(user.password, password):
             login_user(user)
             return jsonify(
                 {
-                    "message": "Login successful",
-                    "data": {"token": "token-admin"},
-                    "status": "success",
-                    "code": 0,
+                    "ret": {
+                        "message": "Login successful",
+                        "code": "200",
+                    },
                 }
             )
         else:
             return jsonify(
                 {
-                    "message": "Invalid username or password",
-                    "data": {"token": "token-admin"},
-                    "status": "error",
-                    "code": 0,
+                    "ret": {
+                        "message": "Username or password is incorrect",
+                        "code": "400",
+                    }
                 }
             )
-    return jsonify({"message": "Method not allowed", "status": "error", "code": 0})
-
-
-# 获取用户信息
-@app.route("/api/v1/info", methods=["GET", "POST"])
-def getInfo():
-    if request.method == "GET":
-        return {
-            "message": "Get user info successful",
-            "data": {"username": "admin", "roles": ["admin"]},
-            "status": "success",
-            "code": 0,
+    return jsonify(
+        {
+            "ret": {
+                "message": "Method not allowed",
+                "code": "405",
+            }
         }
+    )
 
 
 # 登出
-@app.route("/api/v1/logout")
+@app.route("/v1/logout")
 # @login_required
 def logout():
     logout_user()
-    return jsonify({"message": "Logout successful", "status": "success", "code": 0})
+    return jsonify(
+        {
+            "ret": {
+                "message": "Logout successful",
+                "code": "200",
+            }
+        }
+    )
 
 
 # 发送邮件
-@app.post("/api/v1/send_register_sms")
+@app.post("/v1/send_register_sms")
 def send_register_sms():
     # 1. 解析前端传递过来的数据
     data = request.get_json()
@@ -154,7 +178,14 @@ def send_register_sms():
     pattern = r"^([a-zA-Z]|[0-9])(\w|\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$"  # 邮箱校验，防止前端绕过
     ret = re.match(pattern, email)
     if not ret:
-        return {"message": "邮箱不符合格式", "status": "error", "code": -1}
+        return jsonify(
+            {
+                "ret": {
+                    "message": "邮箱格式不正确",
+                    "code": "400",
+                }
+            }
+        )
 
     # 3.1 生成随机验证码
     my_sender = "439824791@qq.com"  # 发件人邮箱账号
@@ -165,18 +196,28 @@ def send_register_sms():
     ret = mailsend(my_sender, my_pass, my_user, text)  # 发送邮件
 
     if ret:
-        return {
-            "message": "发送邮箱验证码成功",
-            "status": "success",
-            "data": mailcode,
-            "code": 0,
-        }
+        return jsonify(
+            {
+                "ret": {
+                    "message": "发送邮箱验证码成功",
+                    "code": "200",
+                },
+                "data": {"mailcode": text},
+            }
+        )
     else:
-        return {"message": "发送邮箱验证码失败", "status": "error", "code": -1}
+        return jsonify(
+            {
+                "ret": {
+                    "message": "发送邮箱验证码失败",
+                    "code": "400",
+                }
+            }
+        )
 
 
 # 上传文件
-@app.route("/api/v1/upload_file", methods=["POST"])
+@app.route("/v1/upload_file", methods=["POST"])
 # @login_required
 def upload_file():
     if "file" in request.files and request.files["file"] != "":
@@ -185,9 +226,10 @@ def upload_file():
         if file.content_length > 1024 * 1024 * 5:
             return jsonify(
                 {
-                    "message": "文件大小超过5MB",
-                    "status": "error",
-                    "code": -1,
+                    "ret": {
+                        "message": "文件大小超过5MB",
+                        "code": "400",
+                    }
                 }
             )
         # 文件类型检查
@@ -208,19 +250,22 @@ def upload_file():
         if not any([filename.endswith(i) for i in receive_file_type]):
             response = jsonify(
                 {
-                    "message": "文件类型不支持",
-                    "status": "error",
-                    "code": -1,
+                    "ret": {
+                        "message": "文件类型不支持",
+                        "code": "400",
+                    }
                 }
             )
             response.status_code = 400
             return response
         # 保存文件
+        data = request.get_json()
+        codename = data.get("codeName", "")
         timestamp = str(time.time())  # 时间戳区分文件
-        name, ext = os.path.splitext(filename)
-        filename = name + "_" + timestamp + ext
+        _, ext = os.path.splitext(filename)
+        filename = codename + "_" + timestamp + ext
         user_id = current_user.get_id()
-        file_db = File(file_name=name, file_type=ext.lstrip("."), user_id=user_id)
+        file_db = File(file_name=filename, file_type=ext.lstrip("."), user_id=user_id)
         with app.app_context():
             db.session.add(file_db)
             db.session.commit()
@@ -231,153 +276,170 @@ def upload_file():
         # 保存文件
         return jsonify(
             {
-                "message": "成功上传文件",
-                "status": "success",
-                "data": "upload/file/" + filename,
-                "code": 0,
+                "ret": {
+                    "message": "文件上传成功",
+                    "code": "200",
+                },
+                "data": {"file_path": "upload/file/" + filename, "file_name": filename},
             }
         )
     else:  # 上传文件为空
-        response = jsonify({"message": "文件为空", "status": "error", "code": -1})
+        response = jsonify(
+            {
+                "ret": {
+                    "message": "文件为空",
+                    "code": "400",
+                }
+            }
+        )
         response.status_code = 400
         return response
 
 
 # 上传文本
-@app.route("/api/v1/upload_text", methods=["POST"])
+@app.route("/v1/upload_text", methods=["POST"])
 # @login_required
 def upload_text():
     # 处理文本
     data = request.get_json()
-    text = data.get("text", "")
-    type = data.get("type", "")
+    text = data.get("codeText", "")
+    type = data.get("codeType", "")
+    name = data.get("codeName", "")
+    granularity = data.get("granularity", 1)
 
     if text == "":
-        response = jsonify({"message": "文本为空", "status": "error", "code": -1})
+        response = jsonify(
+            {
+                "ret": {
+                    "message": "文本为空",
+                    "code": "400",
+                }
+            }
+        )
         response.status_code = 400
         return response
     else:
         timestamp = str(time.time())
-        filename = "text_" + timestamp + ".txt"
-        name = filename
+        type_dict = {
+            "python": ".py",
+            "javascript": ".js",
+            "java": ".java",
+            "c": ".c",
+            "cpp": ".cpp",
+            "go": ".go",
+        }
+        # 保存文件名及类型到数据库
+        filename = name + "_" + timestamp + type_dict[type]
         user_id = current_user.get_id()
-        file_db = File(file_name=name, file_type=type, user_id=user_id)
+        file_db = File(
+            file_name=filename, file_type=type_dict[type].lstrip(), user_id=user_id
+        )
         with app.app_context():
             db.session.add(file_db)
             db.session.commit()
-        # 保存文件名及类型到数据库
+
         with open("upload/file/" + filename, "w") as f:
             f.write(text)
         logger.info(f"{time.time}：文本{filename}上传成功")
 
         return jsonify(
             {
-                "message": "成功上传文本",
-                "status": "success",
-                "data": "upload/file/" + filename,
-                "code": 0,
+                "ret": {
+                    "message": "文本上传成功",
+                    "code": "200",
+                },
+                "data": {
+                    "file_path": "upload/file/" + filename,
+                    "file_name": filename,
+                    "granularity": granularity,
+                },
             }
         )
 
 
 # 处理文件
-@app.route("/api/v1/process", methods=["POST"])
+@app.route("/v1/process", methods=["POST"])
 # @login_required
 def process_file():
-    data = request.get_json()
+    data = request.get_json().get("filepath", {}).get("data", "")
     file_path = data.get("file_path", "")
-    if file_path == "" or file_path is None:
-        response = jsonify({"message": "文件路径为空", "status": "error", "code": -1})
-        response.status_code = 400
-        return response
-    # 数据库查询
-    filename = file_path.split("/")[-1].split(".")[0] + ".txt"
-    # file_db = File.query.filter_by(file_name=filename).first()
-    # if not file_db:
-    #     response = jsonify({"message": "文件不存在", "status": "error", "code": -1})
-    #     response.status_code = 404
-    #     return response
-
-    def file_process(file_path, filename):
-
-        conpress_type = ["zip", "rar", "7z"]
-        try:
-            if any(file_path.split(".")[-1] == i for i in conpress_type):
-                text_return = multiFileProcess(file_path)  # 处理压缩多文件
-                pdf_path = getReport(filename, text_return)
-            else:
-                text_return = textProcess(file_path)  # 处理普通文件
-                pdf_path = getReport(filename, text_return)
-            if pdf_path is not None:
-                logger.info(f"{time.time()}：文件{file_path}处理成功")
-                # 写入数据库
-                user_id = current_user.get_id()
-                analysis_db = Analysis(
-                    file_name=filename,
-                    user_id=user_id,
-                    status=2,
-                )
-                with app.app_context():
-                    db.session.add(analysis_db)
-                    db.session.commit()
-                response = jsonify(
-                    {
-                        "message": "处理成功",
-                        "status": "success",
-                        "data": pdf_path,
-                        "code": 0,
+    granularity = data.get("granularity", "beginner")
+    filename = data.get("file_name", "")
+    if not file_path:
+        return (
+            jsonify(
+                {
+                    "ret": {
+                        "message": "文件路径为空",
+                        "code": 400,
                     }
-                )
-                response.status_code = 200
-                return response
+                }
+            ),
+            400,
+        )
 
-        except Exception as e:
-            response = jsonify({"message": "处理失败", "status": "error", "code": -1})
-            response.status_code = 400
-            return response
+    compress_types = ["zip", "rar", "7z"]
+    if any(filename.endswith(ext) for ext in compress_types):
+        text_return = multiFileProcess(file_path)  # 处理压缩多文件
+        pdf_path = getReport(filename, text_return, granularity)
+    else:
+        text_return = textProcess(file_path)  # 处理普通文件
+        pdf_path = getReport(filename, text_return, granularity)
 
-    def run_with_timeout(func, args, timeout=60):
-        result = None
-        thread = threading.Thread(target=func, args=args)
-        thread.start()
-        thread.join(timeout)  # 等待线程终止
-        if thread.is_alive():  # 超时判断
-            ctypes.pythonapi.PyThreadState_SetAsyncExc(
-                ctypes.c_long(thread.ident), ctypes.py_object(SystemExit)
-            )
-            response = jsonify({"message": "处理超时", "status": "error", "code": -1})
-            response.status_code = 400
-            return response
-        else:
-            try:
-                result = thread.join()
-            except RuntimeError:
-                response = jsonify(
-                    {"message": "处理失败", "status": "error", "code": -1}
-                )
-                response.status_code = 400
-                return response
-        return result
-
-    timeout = 3 * 60  # 3分钟
-
-    response = run_with_timeout(file_process, (file_path, filename), timeout)
-    return response
+    if pdf_path is not None:
+        logger.info(f"{time.time()}：文件{file_path}处理成功")
+        response = {
+            "ret": {
+                "message": "处理成功",
+                "code": 200,
+            },
+            "data": pdf_path,
+        }
+        # 写入数据库
+        user_id = current_user.get_id()
+        file_id = File.query.filter_by(file_name=filename).first().id
+        analysis_db = Analysis(
+            file_id=file_id,
+            status="completed",
+            pdf_path=pdf_path,
+        )
+        History_db = AnalysisHistory(
+            user_id=user_id,
+            file_id=file_id,
+            analysis_id=analysis_db.id,
+        )
+        with app.app_context():
+            db.session.add(analysis_db)
+            db.session.add(History_db)
+            db.session.commit()
+        return jsonify(response), 200
+    else:
+        return (
+            jsonify(
+                {
+                    "ret": {
+                        "message": "处理失败",
+                        "code": 400,
+                    }
+                }
+            ),
+            400,
+        )
 
 
 # 仓库监测
-@app.route("/api/v1/repo_monitor", methods=["POST"])
+@app.route("/v1/repo_monitor", methods=["POST"])
 # @login_required
 def repo_monitor():
     data = request.get_json()
     repo_url = data.get("repo_url", "")
     repo_name = data.get("repo_name", "")
     if repo_url == " " or repo_url is None:
-        response = jsonify({"message": "仓库地址为空", "status": "error", "code": -1})
+        response = jsonify({"ret": {"message": "仓库地址为空", "code": "400"}})
         response.status_code = 400
         return response
     if repo_name == " " or repo_name is None:
-        response = jsonify({"message": "仓库名为空", "status": "error", "code": -1})
+        response = jsonify({"ret": {"message": "仓库名为空", "code": "400"}})
         response.status_code = 400
         return response
     # 写入数据库
@@ -400,7 +462,60 @@ def repo_monitor():
     user_email, username = user.email, user.username
     repoMonitor.delay(repo_url, user_email, username)
 
-    return jsonify({"message": "仓库加入监测成功", "status": "success", "code": 0})
+    return jsonify({"ret": {"message:": "仓库监测成功", "code": "200"}})
+
+
+# 获取历史记录
+@app.route("/v1/getRepoHistory", methods=["GET"])
+# @login_required
+def get_repo_history():
+    user_id = current_user.get_id()
+    history = RepoHistory.query.filter_by(user_id=user_id).all()
+    data = []
+    for i in history:
+        repoName = Repo.query.filter_by(id=i.file_id).first().repo_name
+        repoUrl = Repo.query.filter_by(id=i.file_id).first().repo_url
+        uploadTime = File.query.filter_by(id=i.file_id).first().created_at
+        pdfUrl = Analysis.query.filter_by(id=i.analysis_id).first().pdf_path
+
+        data.append(
+            {
+                "repoName": repoName,
+                "repoUrl": repoUrl,
+                "uploadTime": uploadTime,
+                "pdfUrl": pdfUrl,
+                "status": "completed",
+            }
+        )
+    return jsonify(
+        {"ret": {"message": "获取历史记录成功", "code": "200"}, "data": data}
+    )
+
+
+# 获取分析历史记录
+@app.route("/v1/getAnalysisHistory", methods=["GET"])
+# @login_required
+def get_analysis_history():
+    user_id = current_user.get_id()
+    history = AnalysisHistory.query.filter_by(user_id=user_id).all()
+    data = []
+    for i in history:
+        fileName = File.query.filter_by(id=i.file_id).first().file_name
+        uploadTime = File.query.filter_by(id=i.file_id).first().created_at
+        pdfUrl = Analysis.query.filter_by(id=i.analysis_id).first().pdf_path
+        username = User.query.filter_by(id=user_id).first().username
+        data.append(
+            {
+                "projectName": fileName,
+                "uploadTime": uploadTime,
+                "pdfUrl": pdfUrl,
+                "username": username,
+                "status": "completed",
+            }
+        )
+    return jsonify(
+        {"ret": {"message": "获取历史记录成功", "code": "200"}, "data": data}
+    )
 
 
 # 添加钩子函数,在应用退出时关闭 Celery
@@ -412,4 +527,4 @@ atexit.register(shutdown_celery_worker)
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8080)
+    app.run(debug=True, port=5800)
